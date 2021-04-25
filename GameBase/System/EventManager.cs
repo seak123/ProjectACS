@@ -4,38 +4,15 @@ using System;
 using UnityEngine;
 using XLua;
 
-public class EventArgs
-{
-    private object[] _args;
-    public EventArgs(params object[] args)
-    {
-        _args = args;
-    }
-
-    public int Num
-    {
-        get
-        {
-            return _args.Length;
-        }
-        private set { }
-    }
-
-    public object Get(int index)
-    {
-        if (index >= 0 && index < _args.Length)
-        {
-            return _args[index];
-        }
-        return null;
-    }
-}
 public class EventManager : Singleton<EventManager>, IManager
 {
-    private Dictionary<string, Action<EventArgs>> eventMap;
+    private Dictionary<string, Action> actionMap;
+    private Dictionary<string,Action<object>> oneParamMap;
+    private Dictionary<string,Action<object,object>> twoParamsMap;
+    private Dictionary<string,Action<object,object,object>> threeParamsMap;
     public void Init()
     {
-        eventMap = new Dictionary<string, Action<EventArgs>>();
+        eventMap = new Dictionary<string, Action>();
     }
 
     public void Release()
