@@ -6,7 +6,9 @@ using XLua;
 public class BattleProcedure : IProcedure
 {
     private MLogger _logger = new MLogger("BattleProcedure");
+
     private static BattleSession _curSession;
+
     private static BattleSessionVO _curSessionVO;
 
     public static BattleSession CurSession
@@ -32,24 +34,29 @@ public class BattleProcedure : IProcedure
     public void OnEnter()
     {
         _logger.Log("enter battle");
-        var sess = LuaManager.Instance.LuaEnv.Global.Get<LuaTable>("BattleSession");
+        var sess =
+            LuaManager.Instance.LuaEnv.Global.Get<LuaTable>("BattleSession");
         sess.Get<LuaFunction>("StartBattle").Call(CurSessionVO);
-        ScenesManager.Instance.LoadScene("TestScene1", () =>
-        {
-            _logger.Log("init session");
-            _curSession = new BattleSession();
-            _curSession.InitSession();
-        });
+        ScenesManager
+            .Instance
+            .LoadScene("TestScene1",
+            () =>
+            {
+                _logger.Log("init session");
+                _curSession = new BattleSession();
+                _curSession.InitSession();
+            });
     }
 
     public void OnUpdate()
     {
-
+        if (_curSession)
+        {
+            _curSession.OnUpdate(Time.deltaTime);
+        }
     }
 
     public void OnLeave()
     {
-
     }
-
 }
