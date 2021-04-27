@@ -23,11 +23,21 @@ public class BattleSession
     private BattleOrderController _orderController;
     private GameObject _battleUI;
 
+    private int _curSelectUid = 0;
+    #region Properties
     public BattleMap Map
     {
         get
         {
             return _map;
+        }
+    }
+
+    public BattleField Field
+    {
+        get
+        {
+            return _field;
         }
     }
 
@@ -38,6 +48,15 @@ public class BattleSession
             return _orderController;
         }
     }
+
+    public int CurSelectUid
+    {
+        get
+        {
+            return _curSelectUid;
+        }
+    }
+    #endregion
 
     public void InitSession()
     {
@@ -65,6 +84,9 @@ public class BattleSession
 
         // Init OrderController
         _orderController = new BattleOrderController();
+
+        // Event
+        EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelectUnit);
         EventManager.Instance.On(EventConst.REQ_ORDER_INPUT, this.OnReqOrderInput);
     }
 
@@ -73,11 +95,17 @@ public class BattleSession
         _battleFSM.Update(delta);
     }
 
+    private void OnSelectUnit(object uid)
+    {
+        _curSelectUid = int.Parse(uid.ToString());
+    }
+
     private void OnReqOrderInput(object arg)
     {
         LuaTable table = arg as LuaTable;
         var inputList = table.Cast<List<LuaTable>>();
         int count = inputList.Count;
+        _battleFSM.SwitchToState((int)SessionState.PlayCardState);
     }
 }
 
@@ -110,6 +138,7 @@ public class SessionPlayCardState : IFSMState
 
     public void OnEnter()
     {
+        CameraManager.Instance.FocusUnit(BattleProcedure.CurSession.CurSelectUid);
     }
 
     public void OnLeave()

@@ -14,8 +14,9 @@ public class UnitAvatar : MonoBehaviour
 
     private UnitTitle _title;
 
+    #region Properties
     public string Name { get { return _vo.Name; } }
-
+    
     public int Camp
     {
         get { return _vo.Camp; }
@@ -40,6 +41,8 @@ public class UnitAvatar : MonoBehaviour
     {
         get { return _energy; }
     }
+
+    #endregion
 
     // Start is called before the first frame update
     void Start()

@@ -23,6 +23,12 @@ public class BattleField
         unitMap.Add(uid, avatar);
     }
 
+    public UnitAvatar FindUnit(int uid)
+    {
+        if (unitMap.ContainsKey(uid)) return unitMap[uid];
+        return null;
+    }
+
     private void OnCreateUnit(object uid, object unitVO)
     {
         int mUid = int.Parse(uid.ToString());

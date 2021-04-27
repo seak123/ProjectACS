@@ -2,14 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+enum CameraState
+{
+    NormalState,
+    FocusUnitState,
+}
+
 public class CameraManager : MonoSingleton<CameraManager>, IManager
 {
     private Camera _mCamera;
     private GameObject _cameraCarrier;
+    private FSM _cameraFSM;
     private Vector2 _cameraXLimit = Vector2.zero;
     private Vector2 _cameraYLimit = Vector2.zero;
     private BattleSession _curSession;
-
+    #region Properties
     public GameObject CameraCarrier
     {
         get
@@ -17,6 +24,7 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
             return _cameraCarrier;
         }
     }
+    #endregion
     // Start is called before the first frame update
     void Start()
     {
@@ -34,6 +42,10 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
         _cameraCarrier = GameObject.Find("Camera");
         GameObject.DontDestroyOnLoad(_cameraCarrier);
         _mCamera = _cameraCarrier.GetComponentInChildren<Camera>();
+        _cameraFSM = new FSM();
+        _cameraFSM.RegisterState((int)CameraState.NormalState, new CameraNormalState());
+        _cameraFSM.RegisterState((int)CameraState.FocusUnitState, new CameraFocusUnitState());
+        _cameraFSM.SwitchToState((int)CameraState.NormalState);
     }
 
     public void Release()
@@ -76,5 +88,58 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
         float clampZ = Mathf.Clamp(_cameraCarrier.transform.position.z, _cameraYLimit.x, _cameraYLimit.y);
         _cameraCarrier.transform.position = new Vector3(clampX, _cameraCarrier.transform.position.y, clampZ);
     }
+
+    public void FocusUnit(int uid)
+    {
+        _cameraFSM.SwitchToState((int)CameraState.FocusUnitState);
+    }
     #endregion
+}
+
+public class CameraNormalState : IFSMState
+{
+    public int GetKey()
+    {
+        return (int)CameraState.NormalState;
+    }
+
+    public void OnEnter()
+    {
+
+    }
+
+    public void OnLeave()
+    {
+
+    }
+
+    public void OnUpdate(float delta)
+    {
+
+    }
+}
+
+public class CameraFocusUnitState : IFSMState
+{
+    public int GetKey()
+    {
+        return (int)CameraState.FocusUnitState;
+    }
+
+    public void OnEnter()
+    {
+        var avatar = BattleProcedure.CurSession.Field.FindUnit(BattleProcedure.CurSession.CurSelectUid);
+        var curPos = CameraManager.Instance.CameraCarrier.transform.position;
+        CameraManager.Instance.CameraCarrier.transform.position = new Vector3(avatar.transform.position.x, curPos.y, avatar.transform.position.y);
+    }
+
+    public void OnLeave()
+    {
+
+    }
+
+    public void OnUpdate(float delta)
+    {
+
+    }
 }
