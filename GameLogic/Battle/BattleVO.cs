@@ -7,6 +7,8 @@ using XLua;
 public class BattleUnitVO
 {
     public string Name;
+    public int MaxHp;
+    public int MaxEnergy;
     public int Camp;
     public Vector2Int Coord;
     public BattleDirection Direction;

@@ -18,13 +18,9 @@ public enum SessionState
 public class BattleSession
 {
     private FSM _battleFSM;
-
     private BattleMap _map;
-
     private BattleField _field;
-
     private BattleOrderController _orderController;
-
     private GameObject _battleUI;
 
     public BattleMap Map
@@ -60,34 +56,28 @@ public class BattleSession
         _field = new BattleField();
         _field.Init();
 
-        // Units
-        var units = BattleProcedure.CurSessionVO.Units;
-        for (int i = 0; i < units.Count; ++i)
-        {
-            _field.CreateUnit(units[i]);
-        }
-
         //Init FSM
         _battleFSM = new FSM();
-        _battleFSM
-            .RegisterState((int) SessionState.IdleState,
-            new SessionIdleState());
+        _battleFSM.RegisterState((int)SessionState.IdleState, new SessionIdleState());
+        _battleFSM.RegisterState((int)SessionState.PerformState, new SessionPerformState());
+        _battleFSM.RegisterState((int)SessionState.PlayCardState, new SessionPlayCardState());
+        _battleFSM.SwitchToState((int)SessionState.IdleState);
 
         // Init OrderController
         _orderController = new BattleOrderController();
-        EventManager.Instance.On(EventConst.REQ_ORDER_INPUT, this.OnTest);
+        EventManager.Instance.On(EventConst.REQ_ORDER_INPUT, this.OnReqOrderInput);
     }
 
     public void OnUpdate(float delta)
     {
-        _battleFSM.Update (delta);
+        _battleFSM.Update(delta);
     }
 
-    private void OnTest()
+    private void OnReqOrderInput(object arg)
     {
-        LuaTable table = args.Get(0) as LuaTable;
-        int count = table.Get<int>("count");
-        Debug.LogWarning (count);
+        LuaTable table = arg as LuaTable;
+        var inputList = table.Cast<List<LuaTable>>();
+        int count = inputList.Count;
     }
 }
 
@@ -95,7 +85,7 @@ public class SessionIdleState : IFSMState
 {
     public int GetKey()
     {
-        return (int) SessionState.IdleState;
+        return (int)SessionState.IdleState;
     }
 
     public void OnEnter()
@@ -115,7 +105,7 @@ public class SessionPlayCardState : IFSMState
 {
     public int GetKey()
     {
-        return (int) SessionState.PlayCardState;
+        return (int)SessionState.PlayCardState;
     }
 
     public void OnEnter()
@@ -135,7 +125,7 @@ public class SessionPerformState : IFSMState
 {
     public int GetKey()
     {
-        return (int) SessionState.PerformState;
+        return (int)SessionState.PerformState;
     }
 
     public void OnEnter()

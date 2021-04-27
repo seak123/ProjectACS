@@ -29,6 +29,8 @@ public static class BattleLuaLibrary
         sessVO.Units = new List<BattleUnitVO>();
         var unit1 = new BattleUnitVO();
         unit1.Name = "宫本雀";
+        unit1.MaxEnergy = 2;
+        unit1.MaxHp = 15;
         unit1.Camp = 1;
         unit1.Coord = new Vector2Int(0, 0);
         unit1.Direction = BattleDirection.North;
@@ -53,6 +55,8 @@ public static class BattleLuaLibrary
         unit2.Direction = BattleDirection.Sourth;
         unit2.RoundDrawNum = 5;
         unit2.Cards = new List<int>();
+        unit2.MaxEnergy = 3;
+        unit2.MaxHp = 12;
         unit2.Cards.Add(1);
         unit2.Cards.Add(1);
         unit2.Cards.Add(1);

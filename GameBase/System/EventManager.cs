@@ -31,7 +31,7 @@ public class EventManager : Singleton<EventManager>, IManager
     {
         if (!actionMap.ContainsKey(eventName))
         {
-            actionMap.Add (eventName, callback);
+            actionMap.Add(eventName, callback);
         }
         else
         {
@@ -52,7 +52,7 @@ public class EventManager : Singleton<EventManager>, IManager
     {
         if (!oneParamMap.ContainsKey(eventName))
         {
-            oneParamMap.Add (eventName, callback);
+            oneParamMap.Add(eventName, callback);
         }
         else
         {
@@ -73,7 +73,7 @@ public class EventManager : Singleton<EventManager>, IManager
     {
         if (!twoParamsMap.ContainsKey(eventName))
         {
-            twoParamsMap.Add (eventName, callback);
+            twoParamsMap.Add(eventName, callback);
         }
         else
         {
@@ -94,7 +94,7 @@ public class EventManager : Singleton<EventManager>, IManager
     {
         if (!threeParamsMap.ContainsKey(eventName))
         {
-            threeParamsMap.Add (eventName, callback);
+            threeParamsMap.Add(eventName, callback);
         }
         else
         {
@@ -115,19 +115,19 @@ public class EventManager : Singleton<EventManager>, IManager
     {
         if (actionMap.ContainsKey(eventName))
         {
-            actionMap.Remove (eventName);
+            actionMap.Remove(eventName);
         }
         if (oneParamMap.ContainsKey(eventName))
         {
-            oneParamMap.Remove (eventName);
+            oneParamMap.Remove(eventName);
         }
         if (twoParamsMap.ContainsKey(eventName))
         {
-            twoParamsMap.Remove (eventName);
+            twoParamsMap.Remove(eventName);
         }
         if (threeParamsMap.ContainsKey(eventName))
         {
-            threeParamsMap.Remove (eventName);
+            threeParamsMap.Remove(eventName);
         }
     }
 
@@ -146,7 +146,7 @@ public class EventManager : Singleton<EventManager>, IManager
                 }
             case 1:
                 {
-                    Action action;
+                    Action<object> action;
                     if (oneParamMap.TryGetValue(eventName, out action))
                     {
                         action.Invoke(args[0]);
@@ -155,7 +155,7 @@ public class EventManager : Singleton<EventManager>, IManager
                 }
             case 2:
                 {
-                    Action action;
+                    Action<object, object> action;
                     if (twoParamsMap.TryGetValue(eventName, out action))
                     {
                         action.Invoke(args[0], args[1]);
@@ -164,7 +164,7 @@ public class EventManager : Singleton<EventManager>, IManager
                 }
             case 3:
                 {
-                    Action action;
+                    Action<object, object, object> action;
                     if (threeParamsMap.TryGetValue(eventName, out action))
                     {
                         action.Invoke(args[0], args[1], args[2]);
@@ -180,12 +180,12 @@ public class EventManager : Singleton<EventManager>, IManager
     public static void LuaEmit(string eventName, LuaTable argTable)
     {
         int count = argTable.Get<int>("argCount");
-        List<object> args = argTable.Get<List<object>>("argTable");
+        List<object> args = argTable.Get<List<object>>("args");
         switch (count)
         {
             case 0:
                 {
-                    EventManager.Instance.Emit (eventName);
+                    EventManager.Instance.Emit(eventName);
                     break;
                 }
             case 1:
