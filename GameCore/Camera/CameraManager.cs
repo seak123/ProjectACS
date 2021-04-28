@@ -103,17 +103,17 @@ public class CameraNormalState : IFSMState
         return (int)CameraState.NormalState;
     }
 
-    public void OnEnter()
+    public void OnEnter(FSMContext context)
     {
 
     }
 
-    public void OnLeave()
+    public void OnLeave(FSMContext context)
     {
 
     }
 
-    public void OnUpdate(float delta)
+    public void OnUpdate(FSMContext context)
     {
 
     }
@@ -126,19 +126,19 @@ public class CameraFocusUnitState : IFSMState
         return (int)CameraState.FocusUnitState;
     }
 
-    public void OnEnter()
+    public void OnEnter(FSMContext context)
     {
         var avatar = BattleProcedure.CurSession.Field.FindUnit(BattleProcedure.CurSession.CurSelectUid);
         var curPos = CameraManager.Instance.CameraCarrier.transform.position;
         CameraManager.Instance.CameraCarrier.transform.position = new Vector3(avatar.transform.position.x, curPos.y, avatar.transform.position.y);
     }
 
-    public void OnLeave()
+    public void OnLeave(FSMContext context)
     {
 
     }
 
-    public void OnUpdate(float delta)
+    public void OnUpdate(FSMContext context)
     {
 
     }

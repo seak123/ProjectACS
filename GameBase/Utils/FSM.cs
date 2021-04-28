@@ -22,9 +22,14 @@ public class FSMContext
     public float deltaTime;
     public IFSMState lastState;
 
+    public FSMContext()
+    {
+        _variables = new Dictionary<string, object>();
+    }
+
     public void SetVariable(string name, object value)
     {
-        if(!_variables.Containskey(name))
+        if(!_variables.ContainsKey(name))
         {
             _variables.Add(name,null);
         }
@@ -33,7 +38,7 @@ public class FSMContext
 
     public object GetVariable(string name)
     {
-        if(_variables.Containskey(name))return _variables[name];
+        if(_variables.ContainsKey(name))return _variables[name];
         return null;
     }
 }
@@ -122,7 +127,7 @@ public class FSM
             _curState.OnLeave(_context);
             _context.lastState = _curState;
         }
-        _curState = stateMap[toKey];
+        _curState = _stateMap[toKey];
         _curState.OnEnter(_context);
     }
 }

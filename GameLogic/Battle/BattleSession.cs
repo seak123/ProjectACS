@@ -139,7 +139,7 @@ public class SessionPlayCardState : IFSMState
 
     public void OnEnter(FSMContext context)
     {
-        paramList = _battleFSM.Context.GetVariable("PlayCardParamList",paramList) as List<LuaTable>;
+        paramList = context.GetVariable("PlayCardParamList") as List<LuaTable>;
     }
 
     public void OnLeave(FSMContext context)
