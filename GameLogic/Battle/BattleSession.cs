@@ -87,7 +87,7 @@ public class BattleSession
 
         // Event
         EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelectUnit);
-        EventManager.Instance.On(EventConst.REQ_ORDER_INPUT, this.OnReqOrderInput);
+        EventManager.Instance.On(EventConst.REQ_PLAYCARD_PARAMS, this.OnReqPlaycardParams);
     }
 
     public void OnUpdate(float delta)
@@ -100,11 +100,11 @@ public class BattleSession
         _curSelectUid = int.Parse(uid.ToString());
     }
 
-    private void OnReqOrderInput(object arg)
+    private void OnReqPlaycardParams(object arg)
     {
         LuaTable table = arg as LuaTable;
-        var inputList = table.Cast<List<LuaTable>>();
-        int count = inputList.Count;
+        var paramList = table.Cast<List<LuaTable>>();
+        _battleFSM.Context.SetVariable("PlayCardParamList",paramList);
         _battleFSM.SwitchToState((int)SessionState.PlayCardState);
     }
 }
@@ -116,36 +116,37 @@ public class SessionIdleState : IFSMState
         return (int)SessionState.IdleState;
     }
 
-    public void OnEnter()
+    public void OnEnter(FSMContext context)
     {
     }
 
-    public void OnLeave()
+    public void OnLeave(FSMContext context)
     {
     }
 
-    public void OnUpdate(float delta)
+    public void OnUpdate(FSMContext context)
     {
     }
 }
 
 public class SessionPlayCardState : IFSMState
 {
+    private List<LuaTable> paramList;
     public int GetKey()
     {
         return (int)SessionState.PlayCardState;
     }
 
-    public void OnEnter()
+    public void OnEnter(FSMContext context)
     {
-        CameraManager.Instance.FocusUnit(BattleProcedure.CurSession.CurSelectUid);
+        paramList = _battleFSM.Context.GetVariable("PlayCardParamList",paramList) as List<LuaTable>;
     }
 
-    public void OnLeave()
+    public void OnLeave(FSMContext context)
     {
     }
 
-    public void OnUpdate(float delta)
+    public void OnUpdate(FSMContext context)
     {
     }
 }
@@ -157,15 +158,15 @@ public class SessionPerformState : IFSMState
         return (int)SessionState.PerformState;
     }
 
-    public void OnEnter()
+    public void OnEnter(FSMContext context)
     {
     }
 
-    public void OnLeave()
+    public void OnLeave(FSMContext context)
     {
     }
 
-    public void OnUpdate(float delta)
+    public void OnUpdate(FSMContext context)
     {
     }
 }

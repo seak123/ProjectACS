@@ -7,50 +7,82 @@ public interface IFSMState
 {
     int GetKey();
 
-    void OnEnter();
+    void OnEnter(FSMContext context);
 
-    void OnUpdate(float delta);
+    void OnUpdate(FSMContext context);
 
-    void OnLeave();
+    void OnLeave(FSMContext context);
 }
 
 public delegate bool FSMTransferConditionDelegate();
 
+public class FSMContext
+{
+    private Dictionary<string, object> _variables;
+    public float deltaTime;
+    public IFSMState lastState;
+
+    public void SetVariable(string name, object value)
+    {
+        if(!_variables.Containskey(name))
+        {
+            _variables.Add(name,null);
+        }
+        _variables[name] = value;
+    }
+
+    public object GetVariable(string name)
+    {
+        if(_variables.Containskey(name))return _variables[name];
+        return null;
+    }
+}
+
 public class FSM
 {
-    private Dictionary<int, IFSMState> stateMap;
+    private Dictionary<int, IFSMState> _stateMap;
 
-    private List<string> triggers;
+    private List<string> _triggers;
 
-    private IFSMState curState;
+    private IFSMState _curState;
+    private FSMContext _context;
+
+    public FSMContext Context
+    {
+        get{
+            return _context;
+        }
+    }
 
     public FSM()
     {
-        stateMap = new Dictionary<int, IFSMState>();
-        triggers = new List<string>();
+        _stateMap = new Dictionary<int, IFSMState>();
+        _triggers = new List<string>();
+        _context = new FSMContext();
     }
 
     public void Update(float deltaTime)
     {
-        if (curState != null)
+        _context.deltaTime = deltaTime;
+        if (_curState != null)
         {
-            curState.OnUpdate (deltaTime);
+            _curState.OnUpdate (_context);
         }
     }
 
     public void Release()
     {
-        foreach (var name in triggers)
+        foreach (var name in _triggers)
         {
             EventManager.Instance.Off (name);
         }
-        stateMap.Clear();
-        triggers.Clear();
+        _stateMap.Clear();
+        _triggers.Clear();
     }
 
     public void RegisterState(int key, IFSMState state)
     {
-        stateMap.Add (key, state);
+        _stateMap.Add (key, state);
     }
 
     public void RegisterEventTransfer(
@@ -65,14 +97,14 @@ public class FSM
             .On(triggerName,
             () =>
             {
-                if (curState.GetKey() != fromState) return;
+                if (_curState.GetKey() != fromState) return;
                 if (condDelegate == null || condDelegate())
                 {
                     SwitchToState (toState);
                 }
             });
 
-        triggers.Add (triggerName);
+        _triggers.Add (triggerName);
     }
 
     public void RegisterTransfer(
@@ -85,11 +117,12 @@ public class FSM
 
     public void SwitchToState(int toKey)
     {
-        if (curState != null)
+        if (_curState != null)
         {
-            curState.OnLeave();
+            _curState.OnLeave(_context);
+            _context.lastState = _curState;
         }
-        curState = stateMap[toKey];
-        curState.OnEnter();
+        _curState = stateMap[toKey];
+        _curState.OnEnter(_context);
     }
 }
