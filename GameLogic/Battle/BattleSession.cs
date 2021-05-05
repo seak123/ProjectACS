@@ -87,12 +87,14 @@ public class BattleSession
 
         // Event
         EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelectUnit);
-        EventManager.Instance.On(EventConst.REQ_PLAYCARD_PARAMS, this.OnReqPlaycardParams);
+        EventManager.Instance.On(EventConst.REQ_PLAYCARD_PARAMS, OnReqPlaycardParams);
+        EventManager.Instance.On(EventConst.ON_CANCEL_PLAYCARD, OnCancelPlayCard);
     }
 
     public void OnUpdate(float delta)
     {
         _battleFSM.Update(delta);
+        _orderController.Update(delta);
     }
 
     private void OnSelectUnit(object uid)
@@ -104,8 +106,13 @@ public class BattleSession
     {
         LuaTable table = arg as LuaTable;
         var paramList = table.Cast<List<LuaTable>>();
-        _battleFSM.Context.SetVariable("PlayCardParamList",paramList);
+        _battleFSM.Context.SetVariable("PlayCardParamList", paramList);
         _battleFSM.SwitchToState((int)SessionState.PlayCardState);
+    }
+
+    private void OnCancelPlayCard()
+    {
+        _battleFSM.SwitchToState((int)SessionState.IdleState);
     }
 }
 
@@ -132,6 +139,7 @@ public class SessionIdleState : IFSMState
 public class SessionPlayCardState : IFSMState
 {
     private List<LuaTable> paramList;
+    private BattleOrder playOrder;
     public int GetKey()
     {
         return (int)SessionState.PlayCardState;
@@ -140,14 +148,21 @@ public class SessionPlayCardState : IFSMState
     public void OnEnter(FSMContext context)
     {
         paramList = context.GetVariable("PlayCardParamList") as List<LuaTable>;
+        playOrder = BattleProcedure.CurSession.OrderController.TakeInputJob(paramList);
     }
 
     public void OnLeave(FSMContext context)
     {
+        BattleProcedure.CurSession.OrderController.StopInputJob();
     }
 
     public void OnUpdate(FSMContext context)
     {
+        if (playOrder != null && playOrder.bFinish)
+        {
+            EventManager.Instance.Emit(EventConst.ON_INPUT_ORDER, playOrder);
+            playOrder = null;
+        }
     }
 }
 

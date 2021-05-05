@@ -24,7 +24,9 @@ public class GestureManager : MonoSingleton<GestureManager>, IManager
 {
     public Action<GestureData> PinchAction;
     public Action<GestureData> SwipeAction;
+    public Action<GestureData> LongPressBeginAction;
     public Action<GestureData> LongPressAction;
+    public Action<GestureData> LongPressEndAction;
     public Action<GestureData> ClickAction;
     public Action<GestureData> DoubleClickAction;
 
@@ -36,6 +38,8 @@ public class GestureManager : MonoSingleton<GestureManager>, IManager
     private Vector2 _touchOnePos = Vector2.zero;
     private Vector2 _touchTwoPos = Vector2.zero;
     private float _pressTime = 0.0f;
+    private float _longPressTime = 0.0f;
+    private bool bIsPressing = false;
 
     private const float CLICK_TRIG_TIME = 0.3f;
     private const float LONG_PRESS_TRIG_TIME = 0.8f;
@@ -67,6 +71,8 @@ public class GestureManager : MonoSingleton<GestureManager>, IManager
                 _touchOneId = validTouches[0].fingerId;
                 _touchOnePos = validTouches[0].position;
                 _pressTime = 0.0f;
+                _longPressTime = 0.0f;
+                bIsPressing = false;
             }
             else if (validTouches.Count >= 2)
             {
@@ -80,52 +86,84 @@ public class GestureManager : MonoSingleton<GestureManager>, IManager
         else if (_curTouchNum == 1)
         {
             _pressTime += Time.deltaTime;
-            if (validTouches.Count == 0)
+            if (validTouches.Count == 1)
             {
-                if (_pressTime < CLICK_TRIG_TIME)
+                if (validTouches[0].phase == TouchPhase.Ended)
                 {
-                    var gestureData = new GestureData();
-                    gestureData.gestureType = GestureType.Click;
-                    if (ClickAction != null)
+                    if (_pressTime < CLICK_TRIG_TIME)
                     {
-                        ClickAction.Invoke(gestureData);
+                        var gestureData = new GestureData();
+                        gestureData.gestureType = GestureType.Click;
+                        if (ClickAction != null)
+                        {
+                            ClickAction.Invoke(gestureData);
+                        }
                     }
-                }
-                _curTouchNum = 0;
-                _touchOneId = 0;
-                _touchOnePos = Vector2.zero;
-            }
-            else if (validTouches.Count == 1)
-            {
-                var curTouchPos = validTouches[0].position;
-                if (_pressTime >= LONG_PRESS_TRIG_TIME && (curTouchPos - _touchOnePos).magnitude < 0.01f)
-                {
-                    var gestureData = new GestureData();
-                    gestureData.gestureType = GestureType.LongPress;
-                    gestureData.touchPos = curTouchPos;
-                    if (LongPressAction != null)
+                    if (bIsPressing)
                     {
-                        LongPressAction.Invoke(gestureData);
+                        var gestureData = new GestureData();
+                        gestureData.gestureType = GestureType.LongPress;
+                        gestureData.touchPos = validTouches[0].position;
+                        if (LongPressEndAction != null)
+                        {
+                            LongPressEndAction.Invoke(gestureData);
+                        }
+                        bIsPressing = false;
                     }
-                    _touchOnePos = curTouchPos;
+                    _curTouchNum = 0;
+                    _touchOneId = 0;
+                    _touchOnePos = Vector2.zero;
                 }
-                else if ((curTouchPos - _touchOnePos).magnitude >= 0.01f)
+                else if (validTouches[0].phase == TouchPhase.Moved)
                 {
-                    var gestureData = new GestureData();
-                    gestureData.gestureType = GestureType.Swipe;
-                    gestureData.deltaVal = curTouchPos - _touchOnePos;
+                    var curTouchPos = validTouches[0].position;
                     if (SwipeAction != null)
                     {
+                        var gestureData = new GestureData();
+                        gestureData.gestureType = GestureType.Swipe;
+                        gestureData.deltaVal = curTouchPos - _touchOnePos;
                         SwipeAction.Invoke(gestureData);
                     }
+                    if (bIsPressing)
+                    {
+                        var gestureData = new GestureData();
+                        gestureData.gestureType = GestureType.LongPress;
+                        gestureData.touchPos = curTouchPos;
+                        if (LongPressAction != null)
+                        {
+                            LongPressAction.Invoke(gestureData);
+                        }
+                    }
                     _touchOnePos = curTouchPos;
-                    _pressTime = 0.0f;
+                    _longPressTime = 0.0f;
+                }
+                else if (validTouches[0].phase == TouchPhase.Stationary)
+                {
+                    _longPressTime += Time.deltaTime;
+                    if (_longPressTime >= LONG_PRESS_TRIG_TIME)
+                    {
+                        var gestureData = new GestureData();
+                        gestureData.gestureType = GestureType.LongPress;
+                        gestureData.touchPos = validTouches[0].position;
+                        if (LongPressBeginAction != null)
+                        {
+                            LongPressBeginAction.Invoke(gestureData);
+                        }
+                        bIsPressing = true;
+                    }
+                    _touchOnePos = validTouches[0].position;
+                }
+                else
+                {
+                    _touchTwoId = validTouches[1].fingerId;
+                    _touchTwoPos = validTouches[1].position;
                 }
             }
             else
             {
-                _touchTwoId = validTouches[1].fingerId;
-                _touchTwoPos = validTouches[1].position;
+                _curTouchNum = 0;
+                _touchOneId = 0;
+                _touchOnePos = Vector2.zero;
             }
         }
         else
@@ -141,6 +179,8 @@ public class GestureManager : MonoSingleton<GestureManager>, IManager
                 _curTouchNum = 1;
                 _touchOnePos = Input.mousePosition;
                 _pressTime = 0.0f;
+                _longPressTime = 0.0f;
+                bIsPressing = false;
             }
         }
         else if (_curTouchNum == 1)
@@ -148,29 +188,47 @@ public class GestureManager : MonoSingleton<GestureManager>, IManager
             _pressTime += Time.deltaTime;
             if (Input.GetMouseButtonUp(0))
             {
+                var curTouchPos = Input.mousePosition;
                 if (_pressTime < CLICK_TRIG_TIME)
                 {
                     var gestureData = new GestureData();
                     gestureData.gestureType = GestureType.Click;
+                    gestureData.touchPos = Input.mousePosition;
                     if (ClickAction != null)
                     {
                         ClickAction.Invoke(gestureData);
                     }
+                }
+                if (bIsPressing)
+                {
+                    var gestureData = new GestureData();
+                    gestureData.gestureType = GestureType.LongPress;
+                    gestureData.touchPos = curTouchPos;
+                    if (LongPressEndAction != null)
+                    {
+                        LongPressEndAction.Invoke(gestureData);
+                    }
+                    bIsPressing = false;
                 }
                 _curTouchNum = 0;
                 _touchOnePos = Vector2.zero;
             }
             else if (Input.GetMouseButton(0))
             {
-                var curTouchPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-                if (_pressTime >= LONG_PRESS_TRIG_TIME && (curTouchPos - _touchOnePos).magnitude < 0.01f)
+                Vector2 curTouchPos = Input.mousePosition;
+                if ((curTouchPos - _touchOnePos).magnitude < 0.01f)
                 {
-                    var gestureData = new GestureData();
-                    gestureData.gestureType = GestureType.LongPress;
-                    gestureData.touchPos = curTouchPos;
-                    if (LongPressAction != null)
+                    _longPressTime += Time.deltaTime;
+                    if (_longPressTime >= LONG_PRESS_TRIG_TIME && bIsPressing == false)
                     {
-                        LongPressAction.Invoke(gestureData);
+                        var gestureData = new GestureData();
+                        gestureData.gestureType = GestureType.LongPress;
+                        gestureData.touchPos = curTouchPos;
+                        if (LongPressBeginAction != null)
+                        {
+                            LongPressBeginAction.Invoke(gestureData);
+                        }
+                        bIsPressing = true;
                     }
                     _touchOnePos = curTouchPos;
                 }
@@ -184,7 +242,17 @@ public class GestureManager : MonoSingleton<GestureManager>, IManager
                         SwipeAction.Invoke(gestureData);
                     }
                     _touchOnePos = curTouchPos;
-                    _pressTime = 0.0f;
+                    _longPressTime = 0.0f;
+                }
+                if (bIsPressing)
+                {
+                    var gestureData = new GestureData();
+                    gestureData.gestureType = GestureType.LongPress;
+                    gestureData.touchPos = curTouchPos;
+                    if (LongPressAction != null)
+                    {
+                        LongPressAction.Invoke(gestureData);
+                    }
                 }
             }
         }

@@ -10,10 +10,12 @@ public class UnitTitle : MonoBehaviour
     private Text _energyText;
     private Text _nameText;
     private GameObject _selectFlag;
+    private GameObject _actFlag;
     private void Awake()
     {
         _hpText = transform.Find("HP").GetComponent<Text>();
         _nameText = transform.Find("Name").GetComponent<Text>();
+        _actFlag = transform.Find("ActFlag").gameObject;
         _selectFlag = transform.Find("Selected").gameObject;
         _energyText = transform.Find("Name/Energy").GetComponent<Text>();
     }
@@ -40,6 +42,7 @@ public class UnitTitle : MonoBehaviour
         RefreshHp();
         RefreshEnergy();
         _selectFlag.SetActive(false);
+        _actFlag.SetActive(false);
     }
 
     public void RefreshHp()
@@ -55,5 +58,10 @@ public class UnitTitle : MonoBehaviour
     public void SetSelectFlag(bool bShow)
     {
         _selectFlag.SetActive(bShow);
+    }
+
+    public void SetActFlag(bool bShow)
+    {
+        _actFlag.SetActive(bShow);
     }
 }

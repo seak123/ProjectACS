@@ -9,6 +9,7 @@ public class BattleUnitVO
     public string Name;
     public int MaxHp;
     public int MaxEnergy;
+    public int Speed;
     public int Camp;
     public Vector2Int Coord;
     public BattleDirection Direction;
@@ -20,6 +21,7 @@ public class BattleUnitVO
 public class MapGridVO
 {
     public Vector2Int Coord;
+    public float Height;
     public string GroundPath;
     public int GridAttr;
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 enum CameraState
 {
     NormalState,
@@ -13,9 +14,11 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
     private Camera _mCamera;
     private GameObject _cameraCarrier;
     private FSM _cameraFSM;
-    private Vector2 _cameraXLimit = Vector2.zero;
-    private Vector2 _cameraYLimit = Vector2.zero;
     private BattleSession _curSession;
+    private float _cameraHeight = 17f;
+    private bool bIsMoving = false;
+    private bool bIsRotating = false;
+    private float pitchAngle = 0f;
     #region Properties
     public GameObject CameraCarrier
     {
@@ -45,6 +48,8 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
         _cameraFSM = new FSM();
         _cameraFSM.RegisterState((int)CameraState.NormalState, new CameraNormalState());
         _cameraFSM.RegisterState((int)CameraState.FocusUnitState, new CameraFocusUnitState());
+        _cameraFSM.Context.SetVariable("Camera", _mCamera);
+        _cameraFSM.Context.SetVariable("Carrier", _cameraCarrier);
         _cameraFSM.SwitchToState((int)CameraState.NormalState);
     }
 
@@ -56,16 +61,11 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
     public void OnEnterBattle(BattleSession session)
     {
         _curSession = session;
-        const float height = 17.0f;
-        float cameraXOffset = -height * Mathf.Cos(50);
+
         int width = BattleProcedure.CurSessionVO.MapVO.Width;
         int length = BattleProcedure.CurSessionVO.MapVO.Length;
-        _cameraCarrier.transform.position = new Vector3(width / 2 * BattleConst.MAP_GRID_SIDE_LENGTH, height, length / 2 * BattleConst.MAP_GRID_SIDE_LENGTH + cameraXOffset);
-        _cameraCarrier.transform.rotation = Quaternion.Euler(50, 0, 0);
-
-        _cameraXLimit = new Vector2(Mathf.Min(width, 2) * BattleConst.MAP_GRID_SIDE_LENGTH, Mathf.Max(0, width - 2) * BattleConst.MAP_GRID_SIDE_LENGTH);
-        _cameraYLimit = new Vector2(Mathf.Min(length, 3) * BattleConst.MAP_GRID_SIDE_LENGTH + cameraXOffset, Mathf.Max(0, length - 3) * BattleConst.MAP_GRID_SIDE_LENGTH + cameraXOffset);
-
+        SetCameraRotation(new Vector3(50, 0, 0));
+        SetCameraFocusPosition(new Vector2(width / 2 * BattleConst.MAP_GRID_SIDE_LENGTH, length / 2 * BattleConst.MAP_GRID_SIDE_LENGTH));
 
         GestureManager.Instance.SwipeAction += OnSwipe;
     }
@@ -78,22 +78,84 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
     #region BattleCamera
     private void OnSwipe(GestureData gData)
     {
+        if (bIsMoving || bIsRotating) return;
         _cameraCarrier.transform.position -= new Vector3(gData.deltaVal.x * 0.005f, 0, gData.deltaVal.y * 0.005f);
-        ConstraintCamera();
+        _cameraCarrier.transform.position = ConstraintCameraPos(_cameraCarrier.transform.position);
     }
 
-    private void ConstraintCamera()
+    private Vector3 ConstraintCameraPos(Vector3 pos)
     {
-        float clampX = Mathf.Clamp(_cameraCarrier.transform.position.x, _cameraXLimit.x, _cameraXLimit.y);
-        float clampZ = Mathf.Clamp(_cameraCarrier.transform.position.z, _cameraYLimit.x, _cameraYLimit.y);
-        _cameraCarrier.transform.position = new Vector3(clampX, _cameraCarrier.transform.position.y, clampZ);
+        int width = BattleProcedure.CurSessionVO.MapVO.Width;
+        int length = BattleProcedure.CurSessionVO.MapVO.Length;
+        float cameraXOffset = -_cameraHeight * Mathf.Cos(Mathf.Deg2Rad * pitchAngle);
+        Vector2 _cameraXLimit = new Vector2(Mathf.Min(width, 2) * BattleConst.MAP_GRID_SIDE_LENGTH, Mathf.Max(0, width - 2) * BattleConst.MAP_GRID_SIDE_LENGTH);
+        Vector2 _cameraYLimit = new Vector2(Mathf.Min(length, 3) * BattleConst.MAP_GRID_SIDE_LENGTH + cameraXOffset, Mathf.Max(0, length - 3) * BattleConst.MAP_GRID_SIDE_LENGTH + cameraXOffset);
+        float clampX = Mathf.Clamp(pos.x, _cameraXLimit.x, _cameraXLimit.y);
+        float clampZ = Mathf.Clamp(pos.z, _cameraYLimit.x, _cameraYLimit.y);
+        return new Vector3(clampX, pos.y, clampZ);
     }
 
     public void FocusUnit(int uid)
     {
         _cameraFSM.SwitchToState((int)CameraState.FocusUnitState);
     }
+
+    public void ResetCamera()
+    {
+        _cameraFSM.SwitchToState((int)CameraState.NormalState);
+    }
+
+    public void SetCameraFocusPosition(Vector2 relativePos, bool bTween = false)
+    {
+        int width = BattleProcedure.CurSessionVO.MapVO.Width;
+        int length = BattleProcedure.CurSessionVO.MapVO.Length;
+        float cameraXOffset = -_cameraHeight * Mathf.Cos(Mathf.Deg2Rad * pitchAngle);
+        var newPos = ConstraintCameraPos(new Vector3(relativePos.x, _cameraHeight, relativePos.y + cameraXOffset));
+        if (bTween)
+        {
+            var moveHash = new Hashtable();
+            moveHash.Add("position", newPos);
+            moveHash.Add("easeType", iTween.EaseType.easeInOutExpo);
+            moveHash.Add("time", 0.3f);
+            moveHash.Add("oncomplete", "OnMoveCompleted");
+            moveHash.Add("oncompletetarget", gameObject);
+            iTween.MoveTo(_cameraCarrier, moveHash);
+            bIsMoving = true;
+        }
+        else
+        {
+            _cameraCarrier.transform.position = newPos;
+        }
+    }
+    public void SetCameraRotation(Vector3 rotation, bool bTween = false)
+    {
+        pitchAngle = rotation.x;
+        if (bTween)
+        {
+            var rotateHash = new Hashtable();
+            rotateHash.Add("rotation", rotation);
+            rotateHash.Add("easeType", iTween.EaseType.easeInOutExpo);
+            rotateHash.Add("time", 0.3f);
+            rotateHash.Add("oncomplete", "OnRotateCompleted");
+            rotateHash.Add("oncompletetarget", gameObject);
+            iTween.RotateTo(_mCamera.gameObject, rotateHash);
+            bIsRotating = true;
+        }
+        else
+        {
+            _mCamera.transform.rotation = Quaternion.Euler(rotation);
+        }
+    }
     #endregion
+
+    private void OnMoveCompleted()
+    {
+        bIsMoving = false;
+    }
+    private void OnRotateCompleted()
+    {
+        bIsRotating = false;
+    }
 }
 
 public class CameraNormalState : IFSMState
@@ -121,6 +183,8 @@ public class CameraNormalState : IFSMState
 
 public class CameraFocusUnitState : IFSMState
 {
+    private Camera _camera;
+    private GameObject _carrier;
     public int GetKey()
     {
         return (int)CameraState.FocusUnitState;
@@ -128,14 +192,19 @@ public class CameraFocusUnitState : IFSMState
 
     public void OnEnter(FSMContext context)
     {
+        _camera = context.GetVariable("Camera") as Camera;
+        _carrier = context.GetVariable("Carrier") as GameObject;
         var avatar = BattleProcedure.CurSession.Field.FindUnit(BattleProcedure.CurSession.CurSelectUid);
         var curPos = CameraManager.Instance.CameraCarrier.transform.position;
-        CameraManager.Instance.CameraCarrier.transform.position = new Vector3(avatar.transform.position.x, curPos.y, avatar.transform.position.y);
+        CameraManager.Instance.SetCameraRotation(new Vector3(90, 0, 0), true);
+        CameraManager.Instance.SetCameraFocusPosition(new Vector2(avatar.transform.position.x, avatar.transform.position.y), true);
     }
 
     public void OnLeave(FSMContext context)
     {
-
+        var pos = CameraManager.Instance.CameraCarrier.transform.position;
+        CameraManager.Instance.SetCameraRotation(new Vector3(50, 0, 0), true);
+        CameraManager.Instance.SetCameraFocusPosition(new Vector2(pos.x, pos.z), true);
     }
 
     public void OnUpdate(FSMContext context)

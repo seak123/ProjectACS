@@ -19,8 +19,6 @@ public static class BattleConst
         new Vector3(MAP_GRID_HALF_SIDE_LENGTH,0f,MAP_GRID_HALF_SIDE_LENGTH),
     };
 }
-
-[LuaCallCSharp]
 public enum BattleDirection
 {
     North = 0,

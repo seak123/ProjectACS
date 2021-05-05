@@ -8,6 +8,7 @@ public class BattleProcedure : IProcedure
     private MLogger _logger = new MLogger("BattleProcedure");
 
     private static BattleSession _curSession;
+    private static LuaTable _curLuaSession;
 
     private static BattleSessionVO _curSessionVO;
 
@@ -16,6 +17,14 @@ public class BattleProcedure : IProcedure
         get
         {
             return _curSession;
+        }
+    }
+
+    public static LuaTable CurLuaSession
+    {
+        get
+        {
+            return _curLuaSession;
         }
     }
 
@@ -46,8 +55,8 @@ public class BattleProcedure : IProcedure
                 _curSession.InitSession();
 
                 // Init Data layer to drive session
-                var sess = LuaManager.Instance.LuaEnv.Global.Get<LuaTable>("BattleSession");
-                sess.Get<LuaFunction>("StartBattle").Call(CurSessionVO);
+                _curLuaSession = LuaManager.Instance.LuaEnv.Global.Get<LuaTable>("BattleSession");
+                _curLuaSession.Get<LuaFunction>("StartBattle").Call(CurSessionVO);
             });
     }
 

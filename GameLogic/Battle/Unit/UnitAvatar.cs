@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using XLua;
 
 public class UnitAvatar : MonoBehaviour
 {
@@ -9,37 +10,39 @@ public class UnitAvatar : MonoBehaviour
     private BattleDirection _direction;
     private int _uid;
     private BattleUnitVO _vo;
-    private int _hp;
-    private int _energy;
 
     private UnitTitle _title;
 
     #region Properties
     public string Name { get { return _vo.Name; } }
-    
     public int Camp
     {
         get { return _vo.Camp; }
     }
-
+    public Vector2Int CurCoord
+    {
+        get { return _curCoord; }
+    }
     public int MaxHp
     {
-        get { return _vo.MaxHp; }
+        get { return GetProperty("MaxHp"); }
     }
-
     public int Hp
     {
-        get { return _hp; }
+        get { return GetProperty("Hp"); }
     }
-
     public int MaxEnergy
     {
-        get { return _vo.MaxEnergy; }
+        get { return GetProperty("MaxEnergy"); }
     }
 
     public int Energy
     {
-        get { return _energy; }
+        get { return GetProperty("Energy"); }
+    }
+    public int Speed
+    {
+        get { return GetProperty("Speed"); }
     }
 
     #endregion
@@ -60,8 +63,6 @@ public class UnitAvatar : MonoBehaviour
     {
         _uid = uid;
         _vo = vo;
-        _hp = vo.MaxHp;
-        _energy = vo.MaxEnergy;
         _curCoord = vo.Coord;
         _direction = vo.Direction;
 
@@ -76,9 +77,20 @@ public class UnitAvatar : MonoBehaviour
         EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelected);
     }
 
+    public void SetSelected(bool bSelect)
+    {
+        _title.SetSelectFlag(bSelect);
+    }
+
     private void OnSelected(object uid)
     {
         int mUid = int.Parse(uid.ToString());
-        _title.SetSelectFlag(mUid == _uid);
+        _title.SetActFlag(mUid == _uid);
+    }
+
+    private int GetProperty(string name)
+    {
+        var values = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitProperty").Call(_uid, name);
+        return int.Parse(values[0].ToString());
     }
 }
