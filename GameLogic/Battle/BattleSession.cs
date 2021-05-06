@@ -89,6 +89,7 @@ public class BattleSession
         EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelectUnit);
         EventManager.Instance.On(EventConst.REQ_PLAYCARD_PARAMS, OnReqPlaycardParams);
         EventManager.Instance.On(EventConst.ON_CANCEL_PLAYCARD, OnCancelPlayCard);
+        EventManager.Instance.On(EventConst.ON_CONFIRM_PLAYCARD, OnConfirmPlayCard))
     }
 
     public void OnUpdate(float delta)
@@ -104,6 +105,11 @@ public class BattleSession
 
     private void OnReqPlaycardParams(object arg)
     {
+        if(_battleFSM.CurStateKey() == (int)SessionState.PlayCardState)
+        {
+            _battleFSM.SwitchToState((int)SessionState.IdleState)
+        }
+        if(_battleFSM.CurStateKey() != (int)SessionState.IdleState)return;
         LuaTable table = arg as LuaTable;
         var paramList = table.Cast<List<LuaTable>>();
         _battleFSM.Context.SetVariable("PlayCardParamList", paramList);
@@ -111,6 +117,11 @@ public class BattleSession
     }
 
     private void OnCancelPlayCard()
+    {
+        _battleFSM.SwitchToState((int)SessionState.IdleState);
+    }
+
+    private void OnConfirmPlayCard()
     {
         _battleFSM.SwitchToState((int)SessionState.IdleState);
     }
@@ -140,6 +151,7 @@ public class SessionPlayCardState : IFSMState
 {
     private List<LuaTable> paramList;
     private BattleOrder playOrder;
+    private bool bReady = false;
     public int GetKey()
     {
         return (int)SessionState.PlayCardState;
@@ -147,6 +159,7 @@ public class SessionPlayCardState : IFSMState
 
     public void OnEnter(FSMContext context)
     {
+        SetReady(false);
         paramList = context.GetVariable("PlayCardParamList") as List<LuaTable>;
         playOrder = BattleProcedure.CurSession.OrderController.TakeInputJob(paramList);
     }
@@ -154,15 +167,24 @@ public class SessionPlayCardState : IFSMState
     public void OnLeave(FSMContext context)
     {
         BattleProcedure.CurSession.OrderController.StopInputJob();
+        SetReady(false);
+        playOrder = null;
     }
 
     public void OnUpdate(FSMContext context)
     {
         if (playOrder != null && playOrder.bFinish)
         {
-            EventManager.Instance.Emit(EventConst.ON_INPUT_ORDER, playOrder);
-            playOrder = null;
+            SetReady(true)
         }
+    }
+
+    private void SetReady(bool value)
+    {
+        if(bReady==value)return;
+        bReady = value;
+        BattleOrder order = value? playOrder:null;
+        EventManager.Instance.Emit(EventConst.ON_PLAYCARD_READY_CHANGE,bReady,order);
     }
 }
 

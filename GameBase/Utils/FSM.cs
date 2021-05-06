@@ -59,6 +59,13 @@ public class FSM
         }
     }
 
+    public int CurStateKey
+    {
+        get{
+            return _curState.GetKey();
+        }
+    }
+
     public FSM()
     {
         _stateMap = new Dictionary<int, IFSMState>();

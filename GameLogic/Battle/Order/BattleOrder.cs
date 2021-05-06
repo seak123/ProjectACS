@@ -49,7 +49,7 @@ public class BattleOrder
             }
         }
     }
-
+    [BlackList]
     public void StopTask()
     {
         for (int i = 0; i < _curTaskIndex; ++i)
@@ -124,6 +124,7 @@ public class PathInputTask : IInputTask
 {
     private BattleOrder _order;
     private int _count;
+    private List<Vector2Int> _path;
     private TaskPathType _type;
     private bool bFinish = false;
     public void BeginTask(BattleOrder order)
@@ -154,6 +155,10 @@ public class PathInputTask : IInputTask
             case TaskPathType.WalkPath:
                 {
                     CameraManager.Instance.ResetCamera();
+                    GestureManager.Instance.ClickAction -= OnClick;
+                    GestureManager.Instance.LongPressBeginAction -= OnBeginPress;
+                    GestureManager.Instance.LongPressAction -= OnPressMove;
+                    GestureManager.Instance.LongPressEndAction -= OnEndPress;
                     break;
                 }
             default:
@@ -164,6 +169,8 @@ public class PathInputTask : IInputTask
     public void StopTask()
     {
         EndTask();
+        var map = BattleProcedure.CurSession.Map;
+        if(_path!=null)map.ShowPath(_path,false);
     }
 
     public void InjectData(LuaTable data)
@@ -185,13 +192,13 @@ public class PathInputTask : IInputTask
         if (mapGrid != null)
         {
             var goal = mapGrid.Coord;
-            var path = map.FindPath2Goal(unitUid, goal);
-            if (path.Count > _count + 1)
+            _path = map.FindPath2Goal(unitUid, goal);
+            if (_path.Count > _count + 1)
             {
-                path.RemoveRange(_count + 1, path.Count - _count - 1);
+                _path.RemoveRange(_count + 1, path.Count - _count - 1);
             }
-            map.ShowPath(path, true);
-            _order.paths.Add(path);
+            map.ShowPath(_path, true);
+            _order.paths.Add(_path);
             bFinish = true;
         }
     }
