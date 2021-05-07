@@ -40,7 +40,7 @@ public class BattleOrderController
 
     public void StopInputJob()
     {
-        if(_curOrder!=null)
+        if (_curOrder != null)
         {
             _curOrder.StopTask();
             _curOrder = null;
@@ -49,11 +49,10 @@ public class BattleOrderController
 
     public void Update(float deltaTime)
     {
-        if (_curOrder != null)
+        if (_curOrder != null && !_curOrder.bFinish)
         {
             if (_curOrder.type == OrderType.Play)
                 _curOrder.DoTask(deltaTime);
-            if (_curOrder.bFinish) _curOrder = null;
         }
 
     }

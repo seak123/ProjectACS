@@ -118,7 +118,7 @@ public class BattleMap
                 var gridCoord = unit.CurCoord + new Vector2Int(x, y);
                 if (IsMapGridMovable(uid, gridCoord))
                 {
-                    GetMapGrid(gridCoord).SwitchGridState(MapGridState.Notify, true);
+                    GetMapGrid(gridCoord).SwitchGridState(MapGridState.Notify, bShow);
                 }
             }
         }

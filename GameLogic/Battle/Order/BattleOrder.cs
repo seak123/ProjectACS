@@ -124,6 +124,7 @@ public class PathInputTask : IInputTask
 {
     private BattleOrder _order;
     private int _count;
+    private int _uid;
     private List<Vector2Int> _path;
     private TaskPathType _type;
     private bool bFinish = false;
@@ -134,13 +135,13 @@ public class PathInputTask : IInputTask
         {
             case TaskPathType.WalkPath:
                 {
-                    int unitUid = _order.units[_order.units.Count - 1];
-                    CameraManager.Instance.FocusUnit(unitUid);
+                    _uid = _order.units[_order.units.Count - 1];
+                    CameraManager.Instance.FocusUnit(_uid);
                     GestureManager.Instance.ClickAction += OnClick;
                     GestureManager.Instance.LongPressBeginAction += OnBeginPress;
                     GestureManager.Instance.LongPressAction += OnPressMove;
                     GestureManager.Instance.LongPressEndAction += OnEndPress;
-                    BattleProcedure.CurSession.Map.ShowUnitMovableRegion(unitUid, true, _count);
+                    BattleProcedure.CurSession.Map.ShowUnitMovableRegion(_uid, true, _count);
                     break;
                 }
             default:
@@ -159,6 +160,7 @@ public class PathInputTask : IInputTask
                     GestureManager.Instance.LongPressBeginAction -= OnBeginPress;
                     GestureManager.Instance.LongPressAction -= OnPressMove;
                     GestureManager.Instance.LongPressEndAction -= OnEndPress;
+                    BattleProcedure.CurSession.Map.ShowUnitMovableRegion(_uid, false, _count);
                     break;
                 }
             default:
@@ -195,7 +197,7 @@ public class PathInputTask : IInputTask
             _path = map.FindPath2Goal(unitUid, goal);
             if (_path.Count > _count + 1)
             {
-                _path.RemoveRange(_count + 1, path.Count - _count - 1);
+                _path.RemoveRange(_count + 1, _path.Count - _count - 1);
             }
             map.ShowPath(_path, true);
             _order.paths.Add(_path);

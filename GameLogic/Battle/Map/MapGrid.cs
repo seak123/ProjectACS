@@ -49,7 +49,7 @@ public class MapGrid : MonoBehaviour
     {
         if (bOn)
         {
-            _gridState = _gridState ^ (int)state;
+            _gridState = _gridState | (int)state;
         }
         else
         {

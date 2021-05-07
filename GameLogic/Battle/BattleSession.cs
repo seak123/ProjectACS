@@ -89,7 +89,7 @@ public class BattleSession
         EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelectUnit);
         EventManager.Instance.On(EventConst.REQ_PLAYCARD_PARAMS, OnReqPlaycardParams);
         EventManager.Instance.On(EventConst.ON_CANCEL_PLAYCARD, OnCancelPlayCard);
-        EventManager.Instance.On(EventConst.ON_CONFIRM_PLAYCARD, OnConfirmPlayCard))
+        EventManager.Instance.On(EventConst.ON_CONFIRM_PLAYCARD, OnConfirmPlayCard);
     }
 
     public void OnUpdate(float delta)
@@ -105,11 +105,11 @@ public class BattleSession
 
     private void OnReqPlaycardParams(object arg)
     {
-        if(_battleFSM.CurStateKey() == (int)SessionState.PlayCardState)
+        if (_battleFSM.CurStateKey == (int)SessionState.PlayCardState)
         {
-            _battleFSM.SwitchToState((int)SessionState.IdleState)
+            _battleFSM.SwitchToState((int)SessionState.IdleState);
         }
-        if(_battleFSM.CurStateKey() != (int)SessionState.IdleState)return;
+        if (_battleFSM.CurStateKey != (int)SessionState.IdleState) return;
         LuaTable table = arg as LuaTable;
         var paramList = table.Cast<List<LuaTable>>();
         _battleFSM.Context.SetVariable("PlayCardParamList", paramList);
@@ -175,16 +175,16 @@ public class SessionPlayCardState : IFSMState
     {
         if (playOrder != null && playOrder.bFinish)
         {
-            SetReady(true)
+            SetReady(true);
         }
     }
 
     private void SetReady(bool value)
     {
-        if(bReady==value)return;
+        if (bReady == value) return;
         bReady = value;
-        BattleOrder order = value? playOrder:null;
-        EventManager.Instance.Emit(EventConst.ON_PLAYCARD_READY_CHANGE,bReady,order);
+        BattleOrder order = value ? playOrder : null;
+        BattleProcedure.CurLuaSession.Get<LuaFunction>("UpdateReadyOrder").Call(bReady, order);
     }
 }
 
