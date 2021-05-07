@@ -21,7 +21,11 @@ public class UnitAvatar : MonoBehaviour
     }
     public Vector2Int CurCoord
     {
-        get { return _curCoord; }
+        get
+        {
+            var value = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitCoord").Call(_uid)[0] as LuaTable;
+            return new Vector2Int(value.Get<int>("x"), value.Get<int>("y"));
+        }
     }
     public int MaxHp
     {

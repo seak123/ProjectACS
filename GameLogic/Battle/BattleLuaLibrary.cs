@@ -55,7 +55,7 @@ public static class BattleLuaLibrary
         unit2.Camp = 2;
         unit2.Coord = new Vector2Int(7, 8);
         unit2.Direction = BattleDirection.Sourth;
-        unit2.RoundDrawNum = 5;
+        unit2.RoundDrawNum = 3;
         unit2.Cards = new List<int>();
         unit2.MaxEnergy = 3;
         unit2.MaxHp = 12;
