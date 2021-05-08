@@ -21,6 +21,7 @@ public class BattleSession
     private BattleMap _map;
     private BattleField _field;
     private BattleOrderController _orderController;
+    private BattlePerformer _performer;
     private GameObject _battleUI;
 
     private int _curSelectUid = 0;
@@ -48,7 +49,13 @@ public class BattleSession
             return _orderController;
         }
     }
-
+    public BattlePerformer Performer
+    {
+        get
+        {
+            return _performer;
+        }
+    }
     public int CurSelectUid
     {
         get
@@ -85,15 +92,20 @@ public class BattleSession
         // Init OrderController
         _orderController = new BattleOrderController();
 
+        // Init Performer
+        _performer = new BattlePerformer();
+
         // Event
         EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelectUnit);
         EventManager.Instance.On(EventConst.REQ_PLAYCARD_PARAMS, OnReqPlaycardParams);
         EventManager.Instance.On(EventConst.ON_CANCEL_PLAYCARD, OnCancelPlayCard);
         EventManager.Instance.On(EventConst.ON_CONFIRM_PLAYCARD, OnConfirmPlayCard);
+        EventManager.Instance.On(EventConst.ON_PERFORM_START, OnPerformStart);
     }
 
     public void OnUpdate(float delta)
     {
+        _battleFSM.Context.SetVariable("DeltaTime", delta);
         _battleFSM.Update(delta);
         _orderController.Update(delta);
     }
@@ -124,6 +136,14 @@ public class BattleSession
     private void OnConfirmPlayCard()
     {
         _battleFSM.SwitchToState((int)SessionState.IdleState);
+    }
+
+    private void OnPerformStart(object arg)
+    {
+        LuaTable table = arg as LuaTable;
+        var performRoot = table.Cast<LuaTable>();
+        _battleFSM.Context.SetVariable("PerformRoot", performRoot);
+        _battleFSM.SwitchToState((int)SessionState.PerformState);
     }
 }
 
@@ -190,6 +210,7 @@ public class SessionPlayCardState : IFSMState
 
 public class SessionPerformState : IFSMState
 {
+    private LuaTable _performRoot;
     public int GetKey()
     {
         return (int)SessionState.PerformState;
@@ -197,6 +218,8 @@ public class SessionPerformState : IFSMState
 
     public void OnEnter(FSMContext context)
     {
+        _performRoot = context.GetVariable("PerformRoot") as LuaTable;
+        BattleProcedure.CurSession.Performer.Perform(_performRoot);
     }
 
     public void OnLeave(FSMContext context)
@@ -205,5 +228,11 @@ public class SessionPerformState : IFSMState
 
     public void OnUpdate(FSMContext context)
     {
+        float deltaTime = float.Parse(context.GetVariable("DeltaTime").ToString());
+        BattleProcedure.CurSession.Performer.OnUpdate(deltaTime);
+        if(BattleProcedure.CurSession.Performer.Finished)
+        {
+
+        }
     }
 }
