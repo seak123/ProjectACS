@@ -21,10 +21,18 @@ public class FSMContext
     private Dictionary<string, object> _variables;
     public float deltaTime;
     public IFSMState lastState;
+    private FSM _fsm;
 
-    public FSMContext()
+    public FSMContext(FSM fsm)
     {
+        _fsm = fsm;
         _variables = new Dictionary<string, object>();
+    }
+
+    public FSM FSM{
+        get{
+            return _fsm;
+        }
     }
 
     public void SetVariable(string name, object value)
@@ -70,7 +78,7 @@ public class FSM
     {
         _stateMap = new Dictionary<int, IFSMState>();
         _triggers = new List<string>();
-        _context = new FSMContext();
+        _context = new FSMContext(this);
     }
 
     public void Update(float deltaTime)

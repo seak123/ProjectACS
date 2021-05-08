@@ -2,17 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoveNode : MonoBehaviour
+public class MoveNode : BaseNode, IPerformNode
 {
-    // Start is called before the first frame update
-    void Start()
+    private int _casterUid;
+    private BattleDirection _direction;
+    public PerformNodeType GetType()
+    {
+        return PerformNodeType.Move;
+    }
+    public void InjectData(LuaTable table)
+    {
+        _casterUid = table.Get<int>("caster");
+        _direction = (BattleDirection)table.Get<int>("direction");
+    }
+    public void Construct()
     {
         
     }
-
-    // Update is called once per frame
-    void Update()
+    public void Play(float deltaTime)
     {
         
+    }
+    public bool IsFinished()
+    {
+
     }
 }

@@ -11,6 +11,8 @@ public class BattleUnitVO
     public int MaxEnergy;
     public int Speed;
     public int Camp;
+    // perform-data
+    public float MoveSpeed = 3;
     public Vector2Int Coord;
     public BattleDirection Direction;
     public int RoundDrawNum;

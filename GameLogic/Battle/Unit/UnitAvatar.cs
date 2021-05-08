@@ -97,4 +97,17 @@ public class UnitAvatar : MonoBehaviour
         var values = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitProperty").Call(_uid, name);
         return int.Parse(values[0].ToString());
     }
+
+    #region Animation
+    public void TurnToDirection(BattleDirection direction,float time = 0.3f)
+    {
+        var rotation = BattleProcedure.CurSession.Map.MapDirection2Quat(_direction);
+        var moveHash = new Hashtable();
+        moveHash.Add("rotation", rotation.Euler());
+        moveHash.Add("easeType", iTween.EaseType.easeInOutExpo);
+        moveHash.Add("time", time);
+        iTween.RotateTo(_cameraCarrier, moveHash);
+    }
+
+    #endregion
 }

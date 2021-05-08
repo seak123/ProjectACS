@@ -25,6 +25,7 @@ public class BattleSession
     private GameObject _battleUI;
 
     private int _curSelectUid = 0;
+    private LuaTable _curPlayReqTable;
     #region Properties
     public BattleMap Map
     {
@@ -121,10 +122,9 @@ public class BattleSession
         {
             _battleFSM.SwitchToState((int)SessionState.IdleState);
         }
+         _curPlayReqTable = arg as LuaTable;
+
         if (_battleFSM.CurStateKey != (int)SessionState.IdleState) return;
-        LuaTable table = arg as LuaTable;
-        var paramList = table.Cast<List<LuaTable>>();
-        _battleFSM.Context.SetVariable("PlayCardParamList", paramList);
         _battleFSM.SwitchToState((int)SessionState.PlayCardState);
     }
 
@@ -156,6 +156,10 @@ public class SessionIdleState : IFSMState
 
     public void OnEnter(FSMContext context)
     {
+        if(_curPlayReqTable!=null)
+        {
+            context.FSM.SwitchToState((int)SessionState.PerformState);
+        }
     }
 
     public void OnLeave(FSMContext context)
@@ -180,7 +184,7 @@ public class SessionPlayCardState : IFSMState
     public void OnEnter(FSMContext context)
     {
         SetReady(false);
-        paramList = context.GetVariable("PlayCardParamList") as List<LuaTable>;
+        paramList = _curPlayReqTable.Cast<List<LuaTable>>();
         playOrder = BattleProcedure.CurSession.OrderController.TakeInputJob(paramList);
     }
 
@@ -189,6 +193,7 @@ public class SessionPlayCardState : IFSMState
         BattleProcedure.CurSession.OrderController.StopInputJob();
         SetReady(false);
         playOrder = null;
+        _curPlayReqTable = null;
     }
 
     public void OnUpdate(FSMContext context)
@@ -232,7 +237,7 @@ public class SessionPerformState : IFSMState
         BattleProcedure.CurSession.Performer.OnUpdate(deltaTime);
         if(BattleProcedure.CurSession.Performer.Finished)
         {
-
+            context.FSM.SwitchToState((int)SessionState.IdleState);
         }
     }
 }
