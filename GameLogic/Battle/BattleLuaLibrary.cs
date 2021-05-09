@@ -14,14 +14,23 @@ public static class BattleLuaLibrary
         sessVO.MapVO.Width = 8;
         sessVO.MapVO.Length = 9;
         sessVO.MapVO.Grids = new List<MapGridVO>();
+        var obstructGrids = new List<Vector2Int>();
+        obstructGrids.Add(new Vector2Int(5, 4));
+        obstructGrids.Add(new Vector2Int(0, 5));
+        obstructGrids.Add(new Vector2Int(0, 6));
+        obstructGrids.Add(new Vector2Int(0, 7));
+        obstructGrids.Add(new Vector2Int(0, 8));
+        obstructGrids.Add(new Vector2Int(1, 8));
+
         for (int x = 0; x < sessVO.MapVO.Width; ++x)
         {
             for (int y = 0; y < sessVO.MapVO.Length; ++y)
             {
                 var grid = new MapGridVO();
                 grid.Coord = new Vector2Int(x, y);
+                
                 grid.Height = -0.53f;
-                grid.GridAttr = (int)MapGridAttr.Walkable;
+                grid.GridAttr = obstructGrids.Contains(grid.Coord)?(int)MapGridAttr.Obstructive:(int)MapGridAttr.Walkable;
                 grid.GroundPath = "Prefabs/Map/MapGrid";
                 sessVO.MapVO.Grids.Add(grid);
             }
@@ -59,7 +68,7 @@ public static class BattleLuaLibrary
         unit2.Cards = new List<int>();
         unit2.MaxEnergy = 3;
         unit2.MaxHp = 12;
-        unit2.Speed = 3;
+        unit2.Speed = 4;
         unit2.Cards.Add(1);
         unit2.Cards.Add(1);
         unit2.Cards.Add(1);

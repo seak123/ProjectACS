@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 
 enum CameraState
@@ -113,14 +114,8 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
         var newPos = ConstraintCameraPos(new Vector3(relativePos.x, _cameraHeight, relativePos.y + cameraXOffset));
         if (bTween)
         {
-            var moveHash = new Hashtable();
-            moveHash.Add("position", newPos);
-            moveHash.Add("easeType", iTween.EaseType.easeInOutExpo);
-            moveHash.Add("time", 0.3f);
-            moveHash.Add("oncomplete", "OnMoveCompleted");
-            moveHash.Add("oncompletetarget", gameObject);
-            iTween.MoveTo(_cameraCarrier, moveHash);
             bIsMoving = true;
+            _cameraCarrier.transform.DOMove(newPos, 0.3f).SetEase(Ease.InOutExpo).OnComplete(() => { OnMoveCompleted(); });
         }
         else
         {
@@ -132,14 +127,8 @@ public class CameraManager : MonoSingleton<CameraManager>, IManager
         pitchAngle = rotation.x;
         if (bTween)
         {
-            var rotateHash = new Hashtable();
-            rotateHash.Add("rotation", rotation);
-            rotateHash.Add("easeType", iTween.EaseType.easeInOutExpo);
-            rotateHash.Add("time", 0.3f);
-            rotateHash.Add("oncomplete", "OnRotateCompleted");
-            rotateHash.Add("oncompletetarget", gameObject);
-            iTween.RotateTo(_mCamera.gameObject, rotateHash);
             bIsRotating = true;
+            _mCamera.gameObject.transform.DORotate(rotation, 0.3f).SetEase(Ease.InOutExpo).OnComplete(() => { OnRotateCompleted(); });
         }
         else
         {

@@ -44,6 +44,7 @@ public class LuaManager : MonoSingleton<LuaManager>, IManager
         filePath = filePath.Replace('.', '/');
         string path = Application.streamingAssetsPath + @"/LuaScripts/" + filePath + ".lua";
         
+        
 #if UNITY_ANDROID || UNITY_IPHONE
         string text = File.ReadAllText(path);
 #else

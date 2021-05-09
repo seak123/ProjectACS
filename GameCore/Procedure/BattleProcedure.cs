@@ -12,6 +12,9 @@ public class BattleProcedure : IProcedure
 
     private static BattleSessionVO _curSessionVO;
 
+    private GameObject _curShowCard;
+
+    #region Properties
     public static BattleSession CurSession
     {
         get
@@ -39,6 +42,7 @@ public class BattleProcedure : IProcedure
             _curSessionVO = value;
         }
     }
+    #endregion
 
     public void OnEnter()
     {
@@ -58,6 +62,7 @@ public class BattleProcedure : IProcedure
                 _curLuaSession = LuaManager.Instance.LuaEnv.Global.Get<LuaTable>("BattleSession");
                 _curLuaSession.Get<LuaFunction>("StartBattle").Call(CurSessionVO);
             });
+        EventManager.Instance.On(EventConst.ON_SHOW_CARD_DETAIL, OnShowCardDetail);
     }
 
     public void OnUpdate()
@@ -70,5 +75,28 @@ public class BattleProcedure : IProcedure
 
     public void OnLeave()
     {
+        EventManager.Instance.Off(EventConst.ON_SHOW_CARD_DETAIL, OnShowCardDetail);
+    }
+
+    private void OnShowCardDetail(object arg1, object arg2)
+    {
+        bool bShow = (bool)arg1;
+        
+        int cardId = int.Parse(arg2.ToString());
+        if (bShow)
+        {
+            _curShowCard = ResourceManager
+                    .Instance
+                    .LoadUIPrefab(UIConst.STANDARD_CARD, UILayer.Normal_4);
+            var luaOperation = _curShowCard.GetComponent<LuaOperation>();
+            luaOperation.luaBehaviour.Cast<IStandardCard>().InitCard(cardId);
+        }
+        else
+        {
+            if (_curShowCard != null)
+            {
+                GameObject.Destroy(_curShowCard);
+            }
+        }
     }
 }

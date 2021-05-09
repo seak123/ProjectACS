@@ -11,7 +11,10 @@ public static class EventConst
     public static string ON_CONFIRM_PLAYCARD = "ON_CONFIRM_PLAYCARD";
     public static string ON_CANCEL_PLAYCARD = "ON_CANCEL_PLAYCARD";
     public static string ON_INPUT_CS_ORDER = "ON_INPUT_CS_ORDER";
+
     public static string ON_SELECT_OP_UNIT = "ON_SELECT_OP_UNIT";
     public static string ON_CREATE_UNIT = "ON_CREATE_UNIT";
     public static string ON_PERFORM_START = "ON_PERFORM_START";
+
+    public static string ON_SHOW_CARD_DETAIL = "ON_SHOW_CARD_DETAIL";
 }

@@ -47,7 +47,7 @@ public class BattleOrderController
         }
     }
 
-    public void Update(float deltaTime)
+    public void OnUpdate(float deltaTime)
     {
         if (_curOrder != null && !_curOrder.bFinish)
         {

@@ -20,9 +20,9 @@ public class BattleMap
         CreateMapGrids(vo);
     }
     #region Utils
-    private bool IsMapCoordValid(int mapX, int mapY)
+    private bool IsMapCoordValid(Vector2Int coord)
     {
-        return mapX >= 0 && mapX < _mapWidth && mapY >= 0 && mapY < _mapLength;
+        return coord.x >= 0 && coord.x < _mapWidth && coord.y >= 0 && coord.y < _mapLength;
     }
     private void CreateMapGrids(BattleMapVO vo)
     {
@@ -62,11 +62,31 @@ public class BattleMap
 
     public Vector3 MapCoord2World(Vector2Int coord, int height = 0)
     {
-        if (!IsMapCoordValid(coord.x, coord.y)) return Vector3.zero;
+        if (!IsMapCoordValid(coord)) return Vector3.zero;
         Vector3 offset = new Vector3(BattleConst.MAP_GRID_SIDE_LENGTH * coord.x + BattleConst.MAP_GRID_HALF_SIDE_LENGTH, 0, BattleConst.MAP_GRID_SIDE_LENGTH * coord.y + BattleConst.MAP_GRID_HALF_SIDE_LENGTH);
         return offset + _mapRoot.transform.position;
     }
-
+    public Vector2Int GetAdjacentCoord(Vector2Int coord, BattleDirection direction)
+    {
+        Vector2Int aCoord = coord;
+        switch (direction)
+        {
+            case BattleDirection.North:
+                aCoord = aCoord + new Vector2Int(0, 1);
+                break;
+            case BattleDirection.East:
+                aCoord = aCoord + new Vector2Int(1, 0);
+                break;
+            case BattleDirection.Sourth:
+                aCoord = aCoord + new Vector2Int(0, -1);
+                break;
+            case BattleDirection.West:
+                aCoord = aCoord + new Vector2Int(-1, 0);
+                break;
+        }
+        if (IsMapCoordValid(aCoord)) return aCoord;
+        return coord;
+    }
     public Vector2Int World2MapCoord(Vector3 pos)
     {
         int x = Mathf.FloorToInt(pos.x / BattleConst.MAP_GRID_SIDE_LENGTH);
@@ -105,22 +125,13 @@ public class BattleMap
     public void ShowUnitMovableRegion(int uid, bool bShow, int length = 0)
     {
         var unit = BattleProcedure.CurSession.Field.FindUnit(uid);
+        LuaTable region = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetReachableRegion").Call(uid, length)[0] as LuaTable;
+        var regionList = region.Cast<List<LuaTable>>();
 
-        if (length == 0)
+        foreach (var point in regionList)
         {
-            length = unit.Speed;
-        }
-        for (int x = -length; x <= length; ++x)
-        {
-            int rest = length - Mathf.Abs(x);
-            for (int y = -rest; y <= rest; ++y)
-            {
-                var gridCoord = unit.CurCoord + new Vector2Int(x, y);
-                if (IsMapGridMovable(uid, gridCoord))
-                {
-                    GetMapGrid(gridCoord).SwitchGridState(MapGridState.Notify, bShow);
-                }
-            }
+            var vector = new Vector2Int(point.Get<int>("x"), point.Get<int>("y"));
+            GetMapGrid(vector).SwitchGridState(MapGridState.Notify, bShow);
         }
     }
 

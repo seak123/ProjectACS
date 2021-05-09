@@ -6,6 +6,12 @@ public class BaseNode
 {
     private List<IPerformNode> _followers;
     private List<IPerformNode> _campanions;
+
+    public BaseNode()
+    {
+        _followers = new List<IPerformNode>();
+        _campanions = new List<IPerformNode>();
+    }
     public virtual void AddFollower(IPerformNode node)
     {
         _followers.Add(node);

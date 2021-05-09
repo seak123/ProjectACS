@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 using XLua;
 
 public interface IPerformNode
 {
-    public PerformNodeType GetType();
+    public PerformNodeType Type { get; }
     public void InjectData(LuaTable table);
     public void Construct();
     public void Play(float deltaTime);
@@ -16,13 +17,14 @@ public interface IPerformNode
     public List<IPerformNode> GetCompanions();
 }
 
-public enum PerformNodeType {
+public enum PerformNodeType
+{
     Move = 1
 }
 
 public class BattlePerformer
 {
-    private bool bFinish = false;
+    private bool bFinish = true;
     private List<IPerformNode> _playNodes;
 
     public bool Finished
@@ -77,40 +79,42 @@ public class BattlePerformer
 
     private void ParseRawTable(LuaTable rawTable)
     {
-        var ParseNode = (LuaTable table)=>{
-            IPerformNode node = CreateNode((PerformNodeType)table.Get<int>("nodeType"));
-            var followers = table.Get<List<LuaTable>>("followers");
-            var companions = table.Get<List<LuaTable>>("companions");
-            for (int i=0;i<followers.Count;++i)
-            {
-                node.AddFollower(ParseNode(followers[i]));
-            }
-            for (int i=0;i<companions.Count;++i)
-            {
-                node.AddCompanion(ParseNode(companions[i]));
-            }
-            return node;
-        }
-
         var rootNode = ParseNode(rawTable);
         rootNode.Construct();
         _playNodes.Add(rootNode);
         var rootCompanions = rootNode.GetCompanions();
-        for(int i=0;i<rootCompanions.Count;++i)
+        for (int i = 0; i < rootCompanions.Count; ++i)
         {
             rootCompanions[i].Construct();
-            _playNodes.Add(rootCompanions[i])
+            _playNodes.Add(rootCompanions[i]);
         }
+    }
+
+    private IPerformNode ParseNode(LuaTable table)
+    {
+        IPerformNode node = CreateNode((PerformNodeType)table.Get<int>("nodeType"));
+        node.InjectData(table);
+        var followers = table.Get<List<LuaTable>>("followers");
+        var companions = table.Get<List<LuaTable>>("companions");
+        for (int i = 0; i < followers.Count; ++i)
+        {
+            node.AddFollower(ParseNode(followers[i]));
+        }
+        for (int i = 0; i < companions.Count; ++i)
+        {
+            node.AddCompanion(ParseNode(companions[i]));
+        }
+        return node;
     }
 
     private IPerformNode CreateNode(PerformNodeType nodeType)
     {
-        switch(nodeType)
+        switch (nodeType)
         {
             case PerformNodeType.Move:
                 return new MoveNode();
             default:
-                return null
+                return null;
         }
     }
 }

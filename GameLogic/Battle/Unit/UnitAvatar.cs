@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using XLua;
+using DG.Tweening;
 
 public class UnitAvatar : MonoBehaviour
 {
     private Vector2Int _curCoord;
     private BattleDirection _direction;
     private int _uid;
+    private float _moveSpeed;
     private BattleUnitVO _vo;
 
     private UnitTitle _title;
@@ -25,6 +27,13 @@ public class UnitAvatar : MonoBehaviour
         {
             var value = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitCoord").Call(_uid)[0] as LuaTable;
             return new Vector2Int(value.Get<int>("x"), value.Get<int>("y"));
+        }
+    }
+    public Vector2Int CurViewCoord
+    {
+        get
+        {
+            return BattleProcedure.CurSession.Map.World2MapCoord(transform.position);
         }
     }
     public int MaxHp
@@ -68,13 +77,14 @@ public class UnitAvatar : MonoBehaviour
         _uid = uid;
         _vo = vo;
         _curCoord = vo.Coord;
+        _moveSpeed = vo.MoveSpeed;
         _direction = vo.Direction;
 
         transform.position = BattleProcedure.CurSession.Map.MapCoord2World(_curCoord);
         transform.rotation = BattleProcedure.CurSession.Map.MapDirection2Quat(_direction);
 
         // Unit title
-        var titleObj = ResourceManager.Instance.LoadUIPrefab("UI/Prefabs/Battle/UI_UnitTitle", UILayer.Normal_3);
+        var titleObj = ResourceManager.Instance.LoadUIPrefab("UI/Prefabs/Battle/UI_UnitTitle", UILayer.Scene);
         _title = titleObj.AddComponent<UnitTitle>();
         _title.BindUnit(this);
 
@@ -99,14 +109,21 @@ public class UnitAvatar : MonoBehaviour
     }
 
     #region Animation
-    public void TurnToDirection(BattleDirection direction,float time = 0.3f)
+    public void TurnToDirection(BattleDirection direction, Action OnCompleted = null)
     {
-        var rotation = BattleProcedure.CurSession.Map.MapDirection2Quat(_direction);
-        var moveHash = new Hashtable();
-        moveHash.Add("rotation", rotation.Euler());
-        moveHash.Add("easeType", iTween.EaseType.easeInOutExpo);
-        moveHash.Add("time", time);
-        iTween.RotateTo(_cameraCarrier, moveHash);
+        var rotation = BattleProcedure.CurSession.Map.MapDirection2Quat(direction);
+        float angle = Mathf.Abs(rotation.eulerAngles.y - transform.rotation.eulerAngles.y);
+        float time = angle / 720;
+        gameObject.transform.DORotate(rotation.eulerAngles, time).OnComplete(() => { if (OnCompleted != null) OnCompleted.Invoke(); });
+    }
+
+    public void MoveToGrid(Vector2Int goal, Action OnCompleted = null)
+    {
+        var map = BattleProcedure.CurSession.Map;
+        var goalPos = map.MapCoord2World(goal);
+        float distance = Vector3.Distance(goalPos, transform.position);
+        float time = distance / _moveSpeed;
+        gameObject.transform.DOMove(goalPos, time).OnComplete(() => { if (OnCompleted != null) OnCompleted.Invoke(); });
     }
 
     #endregion

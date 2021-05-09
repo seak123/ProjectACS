@@ -81,7 +81,7 @@ public class FSM
         _context = new FSMContext(this);
     }
 
-    public void Update(float deltaTime)
+    public void OnUpdate(float deltaTime)
     {
         _context.deltaTime = deltaTime;
         if (_curState != null)

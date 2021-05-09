@@ -6,6 +6,7 @@ using XLua;
 [LuaCallCSharp]
 public enum UILayer
 {
+    Scene,
     Normal_1,
     Normal_2,
     Normal_3,
@@ -23,6 +24,8 @@ public class ResourceManager : Singleton<ResourceManager>, IManager
         layerEntites = new Dictionary<UILayer, GameObject>();
         var canvas = GameObject.Find("MCanvas");
         GameObject.DontDestroyOnLoad(canvas);
+
+        layerEntites.Add(UILayer.Scene, GameObject.Find("SceneLayer"));
         layerEntites.Add(UILayer.Normal_1, GameObject.Find("NormalLayer_1"));
         layerEntites.Add(UILayer.Normal_2, GameObject.Find("NormalLayer_2"));
         layerEntites.Add(UILayer.Normal_3, GameObject.Find("NormalLayer_3"));

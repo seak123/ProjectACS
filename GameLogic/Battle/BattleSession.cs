@@ -64,6 +64,14 @@ public class BattleSession
             return _curSelectUid;
         }
     }
+
+    public LuaTable CurPlayReq
+    {
+        get
+        {
+            return _curPlayReqTable;
+        }
+    }
     #endregion
 
     public void InitSession()
@@ -107,8 +115,14 @@ public class BattleSession
     public void OnUpdate(float delta)
     {
         _battleFSM.Context.SetVariable("DeltaTime", delta);
-        _battleFSM.Update(delta);
-        _orderController.Update(delta);
+        _battleFSM.OnUpdate(delta);
+        _orderController.OnUpdate(delta);
+        _performer.OnUpdate(delta);
+    }
+
+    public void CleanPlayCardTable()
+    {
+        _curPlayReqTable = null;
     }
 
     private void OnSelectUnit(object uid)
@@ -156,9 +170,9 @@ public class SessionIdleState : IFSMState
 
     public void OnEnter(FSMContext context)
     {
-        if(_curPlayReqTable!=null)
+        if(BattleProcedure.CurSession.CurPlayReq!=null)
         {
-            context.FSM.SwitchToState((int)SessionState.PerformState);
+            context.FSM.SwitchToState((int)SessionState.PlayCardState);
         }
     }
 
@@ -184,7 +198,7 @@ public class SessionPlayCardState : IFSMState
     public void OnEnter(FSMContext context)
     {
         SetReady(false);
-        paramList = _curPlayReqTable.Cast<List<LuaTable>>();
+        paramList = BattleProcedure.CurSession.CurPlayReq.Cast<List<LuaTable>>();
         playOrder = BattleProcedure.CurSession.OrderController.TakeInputJob(paramList);
     }
 
@@ -193,7 +207,7 @@ public class SessionPlayCardState : IFSMState
         BattleProcedure.CurSession.OrderController.StopInputJob();
         SetReady(false);
         playOrder = null;
-        _curPlayReqTable = null;
+        BattleProcedure.CurSession.CleanPlayCardTable();
     }
 
     public void OnUpdate(FSMContext context)
@@ -229,12 +243,11 @@ public class SessionPerformState : IFSMState
 
     public void OnLeave(FSMContext context)
     {
+        
     }
 
     public void OnUpdate(FSMContext context)
     {
-        float deltaTime = float.Parse(context.GetVariable("DeltaTime").ToString());
-        BattleProcedure.CurSession.Performer.OnUpdate(deltaTime);
         if(BattleProcedure.CurSession.Performer.Finished)
         {
             context.FSM.SwitchToState((int)SessionState.IdleState);
