@@ -43,6 +43,7 @@ public class MButton : Button
     private float my_curPointDownTime = 0f;
     private float my_longPressTime = 0.6f;
     private bool my_longPressTrigger = false;
+    private bool my_longPressEndTrigger = false;
 
 
     void Update()
@@ -62,6 +63,7 @@ public class MButton : Button
             if (Time.time > my_curPointDownTime + my_longPressTime)
             {
                 my_longPressTrigger = true;
+                my_longPressEndTrigger = false;
                 my_isStartPress = false;
                 if (my_onLongPress != null)
                 {
@@ -78,6 +80,7 @@ public class MButton : Button
         my_curPointDownTime = Time.time;
         my_isStartPress = true;
         my_longPressTrigger = false;
+        my_longPressEndTrigger = false;
     }
 
     public override void OnPointerUp(PointerEventData eventData)
@@ -85,10 +88,10 @@ public class MButton : Button
         // 指針擡起，結束開始長按
         base.OnPointerUp(eventData);
         my_isStartPress = false;
-        if (my_longPressTrigger && my_onLongPressEnd != null)
+        if (my_longPressTrigger&& !my_longPressEndTrigger && my_onLongPressEnd != null)
         {
             my_onLongPressEnd.Invoke();
-            my_longPressTrigger = false;
+            my_longPressEndTrigger = true;
         }
     }
 
@@ -97,10 +100,10 @@ public class MButton : Button
         // 指針移出，結束開始長按，計時長按標志
         base.OnPointerExit(eventData);
         my_isStartPress = false;
-        if (my_longPressTrigger && my_onLongPressEnd != null)
+        if (my_longPressTrigger && !my_longPressEndTrigger && my_onLongPressEnd != null)
         {
             my_onLongPressEnd.Invoke();
-            my_longPressTrigger = false;
+            my_longPressEndTrigger = true;
         }
     }
 
