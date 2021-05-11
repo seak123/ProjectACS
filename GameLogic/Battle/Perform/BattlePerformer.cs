@@ -7,6 +7,7 @@ using XLua;
 public interface IPerformNode
 {
     public PerformNodeType Type { get; }
+    public float Delay {get;set;}
     public void InjectData(LuaTable table);
     public void Construct();
     public void Play(float deltaTime);
@@ -22,10 +23,17 @@ public enum PerformNodeType
     Move = 1
 }
 
+public struct DelayPerformNode
+{
+    float delayTime;
+    IPerformNode performNode;
+}
+
 public class BattlePerformer
 {
     private bool bFinish = true;
     private List<IPerformNode> _playNodes;
+    private List<DelayPerformNode> _delayNodes;
 
     public bool Finished
     {
@@ -45,6 +53,19 @@ public class BattlePerformer
     {
         if (!bFinish)
         {
+            if (_delayNodes.Count >0)
+            {
+                for (int i=_delayNodes.Count-1;i>=0;--i)
+                {
+                    _delayNodes[i].delayTime -= deltaTime;
+                    if(_delayNodes[i].deltaTime<=0)
+                    {
+                        _delayNodes.performNode.Construct();
+                        _playNodes.Add(_delayNodes[i].performNode);
+                        _delayNodes.RemoveAt(i);
+                    }
+                }
+            }
             if (_playNodes.Count > 0)
             {
                 List<IPerformNode> readyNodes = new List<IPerformNode>();
@@ -61,8 +82,16 @@ public class BattlePerformer
                             var companyNodes = nextNode.GetCompanions();
                             foreach (var coNode in companyNodes)
                             {
-                                coNode.Construct();
-                                readyNodes.Add(coNode);
+                                if(coNode.delay>0)
+                                {
+                                    var delayData = new DelayPerformNode();
+                                    delayData.deltaTime = coNode.delay;
+                                    delayData.performNode = coNode;
+                                    _delayNodes.Add(delayData);
+                                }else{
+                                    coNode.Construct();
+                                    readyNodes.Add(coNode);
+                                }
                             }
                         }
                         _playNodes.RemoveAt(i);
@@ -70,7 +99,8 @@ public class BattlePerformer
                 }
                 _playNodes.AddRange(readyNodes);
             }
-            else
+            
+            if(_delayNodes.Count==0&&_playNodes.Count==0)
             {
                 bFinish = true;
             }
@@ -94,6 +124,8 @@ public class BattlePerformer
     {
         IPerformNode node = CreateNode((PerformNodeType)table.Get<int>("nodeType"));
         node.InjectData(table);
+        var delay = table.Get<float>("delay");
+        node.Delay = delay!=null?delay:0.f;
         var followers = table.Get<List<LuaTable>>("followers");
         var companions = table.Get<List<LuaTable>>("companions");
         for (int i = 0; i < followers.Count; ++i)
