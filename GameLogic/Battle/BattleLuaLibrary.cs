@@ -44,7 +44,7 @@ public static class BattleLuaLibrary
         unit1.Speed = 3;
         unit1.Camp = 1;
         unit1.Coord = new Vector2Int(0, 0);
-        unit1.Direction = BattleDirection.North;
+        unit1.Direction = (int)BattleDirection.North;
         unit1.Cards = new List<int>();
         unit1.RoundDrawNum = 5;
         unit1.Cards.Add(1);
@@ -63,7 +63,7 @@ public static class BattleLuaLibrary
         unit2.Name = "宫本雀";
         unit2.Camp = 2;
         unit2.Coord = new Vector2Int(7, 8);
-        unit2.Direction = BattleDirection.Sourth;
+        unit2.Direction = (int)BattleDirection.Sourth;
         unit2.RoundDrawNum = 3;
         unit2.Cards = new List<int>();
         unit2.MaxEnergy = 3;

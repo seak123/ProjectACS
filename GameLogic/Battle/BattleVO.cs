@@ -14,7 +14,7 @@ public class BattleUnitVO
     // perform-data
     public float MoveSpeed = 3;
     public Vector2Int Coord;
-    public BattleDirection Direction;
+    public int Direction;
     public int RoundDrawNum;
     public int RoundEndKeepNum;
     public List<int> Cards;

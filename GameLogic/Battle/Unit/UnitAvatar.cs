@@ -78,7 +78,7 @@ public class UnitAvatar : MonoBehaviour
         _vo = vo;
         _curCoord = vo.Coord;
         _moveSpeed = vo.MoveSpeed;
-        _direction = vo.Direction;
+        _direction = (BattleDirection)vo.Direction;
 
         transform.position = BattleProcedure.CurSession.Map.MapCoord2World(_curCoord);
         transform.rotation = BattleProcedure.CurSession.Map.MapDirection2Quat(_direction);
@@ -128,14 +128,19 @@ public class UnitAvatar : MonoBehaviour
 
     public void PlayAnimation(string animName, Action OnCompleted = null)
     {
-        if(animName == "Melee")
+        if (animName == "Melee")
         {
             var Start = gameObject.transform.position;
-            var End = gameObject.transform.position + new Vector3(0,1,0);
-            gameObject.transform.DOMove(End,0.3f).OnComplete(()=>{
-                --gameObject
+            var End = gameObject.transform.position + new Vector3(0, 1, 0);
+            gameObject.transform.DOMove(End, 0.2f).SetLoops(2, LoopType.Yoyo).OnComplete(() =>
+            {
+                if (OnCompleted != null)
+                {
+                    OnCompleted.Invoke();
+                }
             });
-        }else if(animName == "Hurt")
+        }
+        else if (animName == "Hurt")
         {
 
         }

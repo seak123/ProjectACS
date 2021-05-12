@@ -16,7 +16,7 @@ public class AnimNode : BaseNode, IPerformNode
     {
         _casterUid = table.Get<int>("caster");
         _targetUid = table.Get<int>("target");
-        _animName = table.Get<int>("animName");
+        _animName = table.Get<string>("animName");
     }
     public void Construct()
     {
