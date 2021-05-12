@@ -26,11 +26,27 @@ public class AnimNode : BaseNode, IPerformNode
     }
     public void Play(float deltaTime)
     {
-        switch(_stage)
+        var sess = BattleProcedure.CurSession;
+        switch (_stage)
         {
             case 1:
                 _stage = 0;
-                _unit.PlayAnimation(_animName,()=>{bCompleted = true;});
+                if (_targetUid != 0)
+                {
+                    var target = sess.Field.FindUnit(_targetUid);
+                    _unit.TurnToGrid(target.CurCoord, () => { _stage = 2; });
+                }
+                else
+                {
+                    _stage = 2;
+                }
+                break;
+            case 2:
+                _stage = 0;
+                _unit.PlayAnimation(_animName, () => { _stage = 3; });
+                break;
+            case 3:
+                _unit.TurnToDirection(_unit.Direction, () => { bCompleted = true; });
                 break;
             default:
                 break;

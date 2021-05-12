@@ -71,6 +71,7 @@ public class UnitInputTask : IInputTask
     private BattleOrder _order;
     private TaskUnitType _unitType;
     private int _count = 0;
+    private int _range = 0;
     private bool bFinish = false;
     private List<int> _selectUnits;
     public void BeginTask(BattleOrder order)
@@ -85,6 +86,15 @@ public class UnitInputTask : IInputTask
                     BattleProcedure.CurSession.Field.FindUnit(BattleProcedure.CurSession.CurSelectUid).SetSelected(true);
                     _selectUnits.Add(BattleProcedure.CurSession.CurSelectUid);
                     _order.units.Add(BattleProcedure.CurSession.CurSelectUid);
+                    break;
+                }
+            case TaskUnitType.Friend:
+                {
+                    break;
+                }
+            case TaskUnitType.Enemy:
+                {
+                    GestureManager.Instance.ClickAction += OnClick;
                     break;
                 }
             default:
@@ -109,11 +119,57 @@ public class UnitInputTask : IInputTask
     {
         _unitType = (TaskUnitType)data.Get<int>("type");
         _count = data.Get<int>("count");
+        _range = data.Get<int>("range");
     }
 
     public bool UpdateTask(float delta)
     {
         return bFinish;
+    }
+    private void OnClick(GestureData gestureData)
+    {
+        var map = BattleProcedure.CurSession.Map;
+        var caster = BattleProcedure.CurSession.Field.FindUnit(BattleProcedure.CurSession.CurSelectUid);
+        var target = map.GetUnitByScreenPos(gestureData.touchPos);
+
+        if (target != null)
+        {
+            var dis = map.GetDistanceBetweenGrids(caster.CurCoord, target.CurCoord);
+            switch (_unitType)
+            {
+                case TaskUnitType.Enemy:
+                    if (target.Camp == 3 - caster.Camp && dis <= _range)
+                    {
+                        if (_selectUnits.Contains(target.Uid))
+                        {
+                            _selectUnits.Remove(target.Uid);
+                        }
+                        else
+                        {
+                            _selectUnits.Add(target.Uid);
+                        }
+                    }
+                    break;
+                case TaskUnitType.Friend:
+                    if (target.Camp == 3 - caster.Camp && dis <= _range)
+                    {
+                        if (_selectUnits.Contains(target.Uid))
+                        {
+                            _selectUnits.Remove(target.Uid);
+                        }
+                        else
+                        {
+                            _selectUnits.Add(target.Uid);
+                        }
+                    }
+                    break;
+            }
+            if (_selectUnits.Count == _count)
+            {
+                _order.units.AddRange(_selectUnits);
+                bFinish = true;
+            }
+        }
     }
 }
 enum TaskPathType
@@ -172,7 +228,7 @@ public class PathInputTask : IInputTask
     {
         EndTask();
         var map = BattleProcedure.CurSession.Map;
-        if(_path!=null)map.ShowPath(_path,false);
+        if (_path != null) map.ShowPath(_path, false);
     }
 
     public void InjectData(LuaTable data)

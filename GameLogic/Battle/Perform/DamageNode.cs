@@ -25,6 +25,7 @@ public class DamageNode : BaseNode, IPerformNode
     public void Play(float deltaTime)
     {
         // Play Damage Fx here
+        _unit.Title.RefreshHp();
         bCompleted = true;
     }
     public bool IsFinished()

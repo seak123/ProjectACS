@@ -55,6 +55,16 @@ public class BattleMap
         }
         return null;
     }
+    public UnitAvatar GetUnitByScreenPos(Vector2 screenPos)
+    {
+        var ray = Camera.main.ScreenPointToRay(screenPos);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 1000, 1 << LayerMask.NameToLayer("BattleUnit")))
+        {
+            return hit.transform.gameObject.GetComponent<UnitAvatar>();
+        }
+        return null;
+    }
     private bool IsMapGridMovable(int uid, Vector2Int coord)
     {
         return (bool)BattleProcedure.CurLuaSession.Get<LuaFunction>("IsGridMovable").Call(uid, coord)[0];
@@ -86,6 +96,11 @@ public class BattleMap
         }
         if (IsMapCoordValid(aCoord)) return aCoord;
         return coord;
+    }
+
+    public int GetDistanceBetweenGrids(Vector2Int point1, Vector2Int point2)
+    {
+        return Mathf.Abs(point1.x - point2.x) + Mathf.Abs(point1.y - point2.y);
     }
     public Vector2Int World2MapCoord(Vector3 pos)
     {

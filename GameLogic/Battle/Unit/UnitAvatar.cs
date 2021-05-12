@@ -11,15 +11,23 @@ public class UnitAvatar : MonoBehaviour
     private BattleDirection _direction;
     private int _uid;
     private float _moveSpeed;
+    private int _camp;
     private BattleUnitVO _vo;
 
     private UnitTitle _title;
 
     #region Properties
+    public int Uid
+    {
+        get
+        {
+            return _uid;
+        }
+    }
     public string Name { get { return _vo.Name; } }
     public int Camp
     {
-        get { return _vo.Camp; }
+        get { return _camp; }
     }
     public Vector2Int CurCoord
     {
@@ -27,6 +35,14 @@ public class UnitAvatar : MonoBehaviour
         {
             var value = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitCoord").Call(_uid)[0] as LuaTable;
             return new Vector2Int(value.Get<int>("x"), value.Get<int>("y"));
+        }
+    }
+    public BattleDirection Direction
+    {
+        get
+        {
+            int direction = int.Parse(BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitDirection").Call(_uid)[0].ToString());
+            return (BattleDirection)direction;
         }
     }
     public Vector2Int CurViewCoord
@@ -58,6 +74,13 @@ public class UnitAvatar : MonoBehaviour
         get { return GetProperty("Speed"); }
     }
 
+    public UnitTitle Title
+    {
+        get
+        {
+            return _title;
+        }
+    }
     #endregion
 
     // Start is called before the first frame update
@@ -78,6 +101,7 @@ public class UnitAvatar : MonoBehaviour
         _vo = vo;
         _curCoord = vo.Coord;
         _moveSpeed = vo.MoveSpeed;
+        _camp = vo.Camp;
         _direction = (BattleDirection)vo.Direction;
 
         transform.position = BattleProcedure.CurSession.Map.MapCoord2World(_curCoord);
@@ -115,6 +139,16 @@ public class UnitAvatar : MonoBehaviour
         float angle = Mathf.Abs(rotation.eulerAngles.y - transform.rotation.eulerAngles.y);
         float time = angle / 720;
         gameObject.transform.DORotate(rotation.eulerAngles, time).OnComplete(() => { if (OnCompleted != null) OnCompleted.Invoke(); });
+    }
+
+    public void TurnToGrid(Vector2Int goal, Action OnCompleted = null)
+    {
+        Vector3 goalPos = BattleProcedure.CurSession.Map.MapCoord2World(goal);
+        Vector2 vector = new Vector2(goalPos.x - transform.position.x, goalPos.z - transform.position.z);
+        float sinValue = vector.x / vector.magnitude;
+        float angle = Mathf.Rad2Deg * Mathf.Asin(sinValue);
+        float time = angle / 720;
+        gameObject.transform.DORotate(new Vector3(0, angle, 0), time).OnComplete(() => { if (OnCompleted != null) OnCompleted.Invoke(); });
     }
 
     public void MoveToGrid(Vector2Int goal, Action OnCompleted = null)
