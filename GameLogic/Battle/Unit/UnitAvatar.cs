@@ -126,5 +126,19 @@ public class UnitAvatar : MonoBehaviour
         gameObject.transform.DOMove(goalPos, time).OnComplete(() => { if (OnCompleted != null) OnCompleted.Invoke(); });
     }
 
+    public void PlayAnimation(string animName, Action OnCompleted = null)
+    {
+        if(animName == "Melee")
+        {
+            var Start = gameObject.transform.position;
+            var End = gameObject.transform.position + new Vector3(0,1,0);
+            gameObject.transform.DOMove(End,0.3f).OnComplete(()=>{
+                --gameObject
+            });
+        }else if(animName == "Hurt")
+        {
+
+        }
+    }
     #endregion
 }
