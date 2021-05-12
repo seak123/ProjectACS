@@ -16,6 +16,7 @@ public class BattleUnitVO
     public Vector2Int Coord;
     public BattleDirection Direction;
     public int RoundDrawNum;
+    public int RoundEndKeepNum;
     public List<int> Cards;
 }
 

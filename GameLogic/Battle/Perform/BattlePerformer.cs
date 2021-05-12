@@ -20,7 +20,9 @@ public interface IPerformNode
 
 public enum PerformNodeType
 {
-    Move = 1
+    Move = 1,
+    Anim = 2,
+    Damage = 3
 }
 
 public class DelayPerformNode
@@ -148,6 +150,10 @@ public class BattlePerformer
         {
             case PerformNodeType.Move:
                 return new MoveNode();
+            case PerformNodeType.Damage:
+                return new DamageNode();
+            case PerformNodeType.Anim:
+                return new AnimNode();
             default:
                 return null;
         }
