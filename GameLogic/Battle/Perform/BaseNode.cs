@@ -4,7 +4,18 @@ using UnityEngine;
 
 public class BaseNode
 {
-    public float Delay => 0.0f;
+    public virtual float Delay
+    {
+        get
+        {
+            return _delay;
+        }
+        set
+        {
+            _delay = value;
+        }
+    }
+    protected float _delay = 0;
     private List<IPerformNode> _followers;
     private List<IPerformNode> _campanions;
 
