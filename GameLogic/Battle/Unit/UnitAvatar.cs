@@ -176,8 +176,23 @@ public class UnitAvatar : MonoBehaviour
         }
         else if (animName == "Hurt")
         {
-
+            gameObject.transform.DOShakeRotation(0.2f, 30).OnComplete(() =>
+            {
+                if (OnCompleted != null)
+                {
+                    OnCompleted.Invoke();
+                }
+            });
         }
+    }
+
+    public void PlayValueNotice(int value, ValueNoticeType noticeType)
+    {
+        var worldPos = transform.position + new Vector3(0, 0.5f, 0);
+        var screenPos = Camera.main.WorldToScreenPoint(worldPos);
+        var noticeObj = ResourceManager.Instance.LoadUIPrefab(UIConst.VALUE_NOTICE, UILayer.Notice);
+        noticeObj.transform.position = screenPos;
+        noticeObj.GetComponent<ValueNotice>().SetValue(value, noticeType);
     }
     #endregion
 }

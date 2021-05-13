@@ -120,8 +120,18 @@ public class BattlePerformer
         var rootCompanions = rootNode.GetCompanions();
         for (int i = 0; i < rootCompanions.Count; ++i)
         {
-            rootCompanions[i].Construct();
-            _playNodes.Add(rootCompanions[i]);
+            if (rootCompanions[i].Delay > 0)
+            {
+                var delayData = new DelayPerformNode();
+                delayData.delayTime = rootCompanions[i].Delay;
+                delayData.performNode = rootCompanions[i];
+                _delayNodes.Add(delayData);
+            }
+            else
+            {
+                rootCompanions[i].Construct();
+                _playNodes.Add(rootCompanions[i]);
+            }
         }
     }
 
