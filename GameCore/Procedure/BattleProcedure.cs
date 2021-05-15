@@ -3,12 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using XLua;
 
+[CSharpCallLua]
+public interface ILuaSession
+{
+    void EnterGame();
+    int GetUnitProperty(int uid, string name);
+    Vector2Int GetUnitCoord(int uid);
+    int GetUnitDirection(int uid);
+    bool IsGridMovable(int uid, Vector2Int vector);
+    List<LuaTable> GetReachableRegion(int uid, int distance);
+    List<LuaTable> GetPathToGoal(int uid, Vector2Int vector);
+    void UpdateReadyOrder(bool isReady, BattleOrder order);
+    void SelectUnit(int uid);
+}
+
 public class BattleProcedure : IProcedure
 {
     private MLogger _logger = new MLogger("BattleProcedure");
 
     private static BattleSession _curSession;
-    private static LuaTable _curLuaSession;
+    private static ILuaSession _luaSession;
 
     private static BattleSessionVO _curSessionVO;
 
@@ -23,11 +37,11 @@ public class BattleProcedure : IProcedure
         }
     }
 
-    public static LuaTable CurLuaSession
+    public static ILuaSession CurLuaSession
     {
         get
         {
-            return _curLuaSession;
+            return _luaSession;
         }
     }
 
@@ -59,8 +73,12 @@ public class BattleProcedure : IProcedure
                 _curSession.InitSession();
 
                 // Init Data layer to drive session
-                _curLuaSession = LuaManager.Instance.LuaEnv.Global.Get<LuaTable>("BattleSession");
-                _curLuaSession.Get<LuaFunction>("StartBattle").Call(CurSessionVO);
+                var luaSessionTable = LuaManager.Instance.LuaEnv.Global.Get<LuaTable>("BattleSession");
+                var curSession = luaSessionTable.Get<LuaFunction>("StartBattle").Call(CurSessionVO)[0] as LuaTable;
+                _luaSession = curSession.Cast<ILuaSession>();
+
+                _luaSession.EnterGame();
+                _curSession.InitBattleUI();
             });
         EventManager.Instance.On(EventConst.ON_SHOW_CARD_DETAIL, OnShowCardDetail);
     }
@@ -81,7 +99,7 @@ public class BattleProcedure : IProcedure
     private void OnShowCardDetail(object arg1, object arg2)
     {
         bool bShow = (bool)arg1;
-        
+
         int cardId = int.Parse(arg2.ToString());
         if (bShow)
         {

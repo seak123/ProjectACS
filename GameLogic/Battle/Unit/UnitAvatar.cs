@@ -33,15 +33,15 @@ public class UnitAvatar : MonoBehaviour
     {
         get
         {
-            var value = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitCoord").Call(_uid)[0] as LuaTable;
-            return new Vector2Int(value.Get<int>("x"), value.Get<int>("y"));
+            var value = BattleProcedure.CurLuaSession.GetUnitCoord(_uid);
+            return value;
         }
     }
     public BattleDirection Direction
     {
         get
         {
-            int direction = int.Parse(BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitDirection").Call(_uid)[0].ToString());
+            int direction = BattleProcedure.CurLuaSession.GetUnitDirection(_uid);
             return (BattleDirection)direction;
         }
     }
@@ -128,8 +128,8 @@ public class UnitAvatar : MonoBehaviour
 
     private int GetProperty(string name)
     {
-        var values = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetUnitProperty").Call(_uid, name);
-        return int.Parse(values[0].ToString());
+        var value = BattleProcedure.CurLuaSession.GetUnitProperty(_uid, name);
+        return value;
     }
 
     #region Animation
@@ -145,9 +145,10 @@ public class UnitAvatar : MonoBehaviour
     {
         Vector3 goalPos = BattleProcedure.CurSession.Map.MapCoord2World(goal);
         Vector2 vector = new Vector2(goalPos.x - transform.position.x, goalPos.z - transform.position.z);
-        float sinValue = vector.x / vector.magnitude;
-        float angle = Mathf.Rad2Deg * Mathf.Asin(sinValue);
-        float time = angle / 720;
+        float angle = Mathf.Rad2Deg * Mathf.Asin(vector.x / vector.magnitude);
+        if (vector.y < 0) angle = 180 - angle;
+        Debug.Log(angle);
+        float time = Vector2.Angle(transform.forward, vector) / 720;
         gameObject.transform.DORotate(new Vector3(0, angle, 0), time).OnComplete(() => { if (OnCompleted != null) OnCompleted.Invoke(); });
     }
 

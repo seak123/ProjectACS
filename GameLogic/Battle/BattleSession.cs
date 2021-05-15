@@ -82,10 +82,6 @@ public class BattleSession
         // Init Map
         _map = new BattleMap();
         _map.Init(BattleProcedure.CurSessionVO.MapVO);
-        _battleUI =
-            ResourceManager
-                .Instance
-                .LoadUIPrefab(UIConst.BATTLE_MAIN_PANEL, UILayer.Normal_1);
 
         // Init Field
         _field = new BattleField();
@@ -107,9 +103,16 @@ public class BattleSession
         // Event
         EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelectUnit);
         EventManager.Instance.On(EventConst.REQ_PLAYCARD_PARAMS, OnReqPlaycardParams);
-        EventManager.Instance.On(EventConst.ON_CANCEL_PLAYCARD, OnCancelPlayCard);
         EventManager.Instance.On(EventConst.ON_CONFIRM_PLAYCARD, OnConfirmPlayCard);
         EventManager.Instance.On(EventConst.ON_PERFORM_START, OnPerformStart);
+    }
+
+    public void InitBattleUI()
+    {
+        _battleUI =
+           ResourceManager
+               .Instance
+               .LoadUIPrefab(UIConst.BATTLE_MAIN_PANEL, UILayer.Normal_1);
     }
 
     public void OnUpdate(float delta)
@@ -136,15 +139,10 @@ public class BattleSession
         {
             _battleFSM.SwitchToState((int)SessionState.IdleState);
         }
-         _curPlayReqTable = arg as LuaTable;
+        _curPlayReqTable = arg as LuaTable;
 
         if (_battleFSM.CurStateKey != (int)SessionState.IdleState) return;
         _battleFSM.SwitchToState((int)SessionState.PlayCardState);
-    }
-
-    private void OnCancelPlayCard()
-    {
-        _battleFSM.SwitchToState((int)SessionState.IdleState);
     }
 
     private void OnConfirmPlayCard()
@@ -170,7 +168,8 @@ public class SessionIdleState : IFSMState
 
     public void OnEnter(FSMContext context)
     {
-        if(BattleProcedure.CurSession.CurPlayReq!=null)
+        GestureManager.Instance.ClickAction += OnClick;
+        if (BattleProcedure.CurSession.CurPlayReq != null)
         {
             context.FSM.SwitchToState((int)SessionState.PlayCardState);
         }
@@ -178,10 +177,20 @@ public class SessionIdleState : IFSMState
 
     public void OnLeave(FSMContext context)
     {
+        GestureManager.Instance.ClickAction -= OnClick;
     }
 
     public void OnUpdate(FSMContext context)
     {
+    }
+
+    private void OnClick(GestureData gestureData)
+    {
+        var unit = BattleProcedure.CurSession.Map.GetUnitByScreenPos(gestureData.touchPos);
+        if (unit != null)
+        {
+            BattleProcedure.CurLuaSession.SelectUnit(unit.Uid);
+        }
     }
 }
 
@@ -190,6 +199,7 @@ public class SessionPlayCardState : IFSMState
     private List<LuaTable> paramList;
     private BattleOrder playOrder;
     private bool bReady = false;
+    private FSM _fsm;
     public int GetKey()
     {
         return (int)SessionState.PlayCardState;
@@ -197,9 +207,12 @@ public class SessionPlayCardState : IFSMState
 
     public void OnEnter(FSMContext context)
     {
+        _fsm = context.FSM;
         SetReady(false);
         paramList = BattleProcedure.CurSession.CurPlayReq.Cast<List<LuaTable>>();
         playOrder = BattleProcedure.CurSession.OrderController.TakeInputJob(paramList);
+
+        EventManager.Instance.On(EventConst.ON_QUIT_PALYCARD, OnQuitPlayCard);
     }
 
     public void OnLeave(FSMContext context)
@@ -223,7 +236,11 @@ public class SessionPlayCardState : IFSMState
         if (bReady == value) return;
         bReady = value;
         BattleOrder order = value ? playOrder : null;
-        BattleProcedure.CurLuaSession.Get<LuaFunction>("UpdateReadyOrder").Call(bReady, order);
+        BattleProcedure.CurLuaSession.UpdateReadyOrder(bReady, order);
+    }
+    private void OnQuitPlayCard()
+    {
+        _fsm.SwitchToState((int)SessionState.IdleState);
     }
 }
 
@@ -243,12 +260,12 @@ public class SessionPerformState : IFSMState
 
     public void OnLeave(FSMContext context)
     {
-        
+
     }
 
     public void OnUpdate(FSMContext context)
     {
-        if(BattleProcedure.CurSession.Performer.Finished)
+        if (BattleProcedure.CurSession.Performer.Finished)
         {
             context.FSM.SwitchToState((int)SessionState.IdleState);
         }

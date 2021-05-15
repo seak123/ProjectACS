@@ -67,7 +67,7 @@ public class BattleMap
     }
     private bool IsMapGridMovable(int uid, Vector2Int coord)
     {
-        return (bool)BattleProcedure.CurLuaSession.Get<LuaFunction>("IsGridMovable").Call(uid, coord)[0];
+        return BattleProcedure.CurLuaSession.IsGridMovable(uid, coord);
     }
 
     public Vector3 MapCoord2World(Vector2Int coord, int height = 0)
@@ -125,14 +125,29 @@ public class BattleMap
         }
     }
 
+    public Vector3 MapDirectionForwad(BattleDirection direction)
+    {
+        switch (direction)
+        {
+            case BattleDirection.East:
+                return new Vector3(1, 0, 0);
+            case BattleDirection.Sourth:
+                return new Vector3(0, 0, -1);
+            case BattleDirection.West:
+                return new Vector3(-1, 0, 0);
+            case BattleDirection.North:
+            default:
+                return new Vector3(0, 0, 1);
+        }
+    }
+
     public List<Vector2Int> FindPath2Goal(int uid, Vector2Int goal)
     {
-        var path = new List<Vector2Int>();
-        LuaTable pathTable = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetPathToGoal").Call(uid, goal)[0] as LuaTable;
-        var list = pathTable.Cast<List<LuaTable>>();
-        for (int i = 0; i < list.Count; ++i)
+        List<Vector2Int> path = new List<Vector2Int>();
+        var pathList = BattleProcedure.CurLuaSession.GetPathToGoal(uid, goal);
+        for (int i = 0; i < pathList.Count; ++i)
         {
-            path.Add(new Vector2Int(list[i].Get<int>("x"), list[i].Get<int>("y")));
+            path.Add(new Vector2Int(pathList[i].Get<int>("x"), pathList[i].Get<int>("y")));
         }
         return path;
     }
@@ -140,13 +155,16 @@ public class BattleMap
     public void ShowUnitMovableRegion(int uid, bool bShow, int length = 0)
     {
         var unit = BattleProcedure.CurSession.Field.FindUnit(uid);
-        LuaTable region = BattleProcedure.CurLuaSession.Get<LuaFunction>("GetReachableRegion").Call(uid, length)[0] as LuaTable;
-        var regionList = region.Cast<List<LuaTable>>();
+        var regionTable = BattleProcedure.CurLuaSession.GetReachableRegion(uid, length);
+        List<Vector2Int> regionList = new List<Vector2Int>();
+        for (int i = 0; i < regionTable.Count; ++i)
+        {
+            regionList.Add(new Vector2Int(regionTable[i].Get<int>("x"), regionTable[i].Get<int>("y")));
+        }
 
         foreach (var point in regionList)
         {
-            var vector = new Vector2Int(point.Get<int>("x"), point.Get<int>("y"));
-            GetMapGrid(vector).SwitchGridState(MapGridState.Notify, bShow);
+            GetMapGrid(point).SwitchGridState(MapGridState.Notify, bShow);
         }
     }
 
