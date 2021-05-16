@@ -14,6 +14,7 @@ public static class EventConst
 
     public static string ON_SELECT_OP_UNIT = "ON_SELECT_OP_UNIT";
     public static string ON_CREATE_UNIT = "ON_CREATE_UNIT";
+    public static string ON_DESTROY_UNIT = "ON_DESTROY_UNIT";
     public static string ON_PERFORM_START = "ON_PERFORM_START";
 
     public static string ON_SHOW_CARD_DETAIL = "ON_SHOW_CARD_DETAIL";

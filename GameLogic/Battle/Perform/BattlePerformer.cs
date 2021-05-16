@@ -22,7 +22,8 @@ public enum PerformNodeType
 {
     Move = 1,
     Anim = 2,
-    Damage = 3
+    Damage = 3,
+    Death = 4
 }
 
 public class DelayPerformNode
@@ -164,6 +165,8 @@ public class BattlePerformer
                 return new DamageNode();
             case PerformNodeType.Anim:
                 return new AnimNode();
+            case PerformNodeType.Death:
+                return new DeathNode();
             default:
                 return null;
         }

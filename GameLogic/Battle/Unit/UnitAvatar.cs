@@ -13,6 +13,7 @@ public class UnitAvatar : MonoBehaviour
     private float _moveSpeed;
     private int _camp;
     private BattleUnitVO _vo;
+    private Action<object> _OnSelectedAction;
 
     private UnitTitle _title;
 
@@ -94,7 +95,15 @@ public class UnitAvatar : MonoBehaviour
     {
 
     }
-
+  
+    private void OnDestroy()
+    {
+        EventManager.Instance.Off(EventConst.ON_SELECT_OP_UNIT, _OnSelectedAction);
+        if (_title != null)
+        {
+            GameObject.Destroy(_title.gameObject);
+        }
+    }
     public void Init(int uid, BattleUnitVO vo)
     {
         _uid = uid;
@@ -112,7 +121,8 @@ public class UnitAvatar : MonoBehaviour
         _title = titleObj.AddComponent<UnitTitle>();
         _title.BindUnit(this);
 
-        EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelected);
+        _OnSelectedAction = new Action<object>(OnSelected);
+        EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, _OnSelectedAction);
     }
 
     public void SetSelected(bool bSelect)
@@ -184,6 +194,17 @@ public class UnitAvatar : MonoBehaviour
                     OnCompleted.Invoke();
                 }
             });
+        }
+        else if (animName == "Dead")
+        {
+            float randAngle = UnityEngine.Random.Range(-180, 180);
+            gameObject.transform.DORotate(new Vector3(90, randAngle, 0), 0.5f).OnComplete(() =>
+              {
+                  if (OnCompleted != null)
+                  {
+                      OnCompleted.Invoke();
+                  }
+              });
         }
     }
 

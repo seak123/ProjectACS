@@ -41,12 +41,13 @@ public static class BattleLuaLibrary
         unit1.Name = "宫本雀";
         unit1.MaxEnergy = 2;
         unit1.MaxHp = 15;
-        unit1.Speed = 3;
+        unit1.Speed = 10;
         unit1.Camp = 1;
         unit1.Coord = new Vector2Int(0, 0);
         unit1.Direction = (int)BattleDirection.North;
         unit1.Cards = new List<int>();
         unit1.RoundDrawNum = 5;
+        unit1.RoundEndKeepNum = 2;
         unit1.Cards.Add(1);
         unit1.Cards.Add(2);
         unit1.Cards.Add(1);
@@ -65,10 +66,11 @@ public static class BattleLuaLibrary
         unit2.Coord = new Vector2Int(7, 8);
         unit2.Direction = (int)BattleDirection.Sourth;
         unit2.RoundDrawNum = 3;
+        unit2.RoundEndKeepNum = 2;
         unit2.Cards = new List<int>();
         unit2.MaxEnergy = 3;
         unit2.MaxHp = 15;
-        unit2.Speed = 3;
+        unit2.Speed = 10;
         unit2.Cards.Add(1);
         unit2.Cards.Add(2);
         unit2.Cards.Add(1);
@@ -87,6 +89,7 @@ public static class BattleLuaLibrary
         unit3.Coord = new Vector2Int(1, 0);
         unit3.Direction = (int)BattleDirection.North;
         unit3.RoundDrawNum = 3;
+        unit3.RoundEndKeepNum = 2;
         unit3.Cards = new List<int>();
         unit3.MaxEnergy = 3;
         unit3.MaxHp = 12;
@@ -109,6 +112,7 @@ public static class BattleLuaLibrary
         unit4.Coord = new Vector2Int(6, 8);
         unit4.Direction = (int)BattleDirection.Sourth;
         unit4.RoundDrawNum = 3;
+        unit4.RoundEndKeepNum = 2;
         unit4.Cards = new List<int>();
         unit4.MaxEnergy = 3;
         unit4.MaxHp = 12;

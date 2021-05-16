@@ -46,7 +46,10 @@ public class AnimNode : BaseNode, IPerformNode
                 _unit.PlayAnimation(_animName, () => { _stage = 3; });
                 break;
             case 3:
-                _unit.TurnToDirection(_unit.Direction, () => { bCompleted = true; });
+                if (_targetUid != 0)
+                {
+                    _unit.TurnToDirection(_unit.Direction, () => { bCompleted = true; });
+                }
                 break;
             default:
                 break;

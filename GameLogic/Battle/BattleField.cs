@@ -23,6 +23,15 @@ public class BattleField
         unitMap.Add(uid, avatar);
     }
 
+    public void DestroyUnit(int uid, float delay = 0.0f)
+    {
+        if (unitMap.ContainsKey(uid))
+        {
+            GameObject.Destroy(unitMap[uid].gameObject, delay);
+            unitMap.Remove(uid);
+        }
+    }
+
     public UnitAvatar FindUnit(int uid)
     {
         if (unitMap.ContainsKey(uid)) return unitMap[uid];
