@@ -4,110 +4,187 @@ using System.Collections.Generic;
 using UnityEngine;
 using XLua;
 
+public class DelegateEvent
+{
+    public delegate void EventHandler();
+
+    public event EventHandler eventHandle;
+    public void Handle()
+    {
+        if (eventHandle != null)
+            eventHandle();
+    }
+    public void removeListener(EventHandler removeHandle)
+    {
+        if (eventHandle != null)
+            eventHandle -= removeHandle;
+    }
+
+    public void addListener(EventHandler addHandle)
+    {
+        eventHandle += addHandle;
+    }
+}
+public class DelegateOneParamEvent
+{
+    public delegate void EventHandler(object param);
+
+    public event EventHandler eventHandle;
+    public void Handle(object arg)
+    {
+        if (eventHandle != null)
+            eventHandle(arg);
+    }
+    public void removeListener(EventHandler removeHandle)
+    {
+        if (eventHandle != null)
+            eventHandle -= removeHandle;
+    }
+
+    public void addListener(EventHandler addHandle)
+    {
+        eventHandle += addHandle;
+    }
+}
+public class DelegateTwoParamEvent
+{
+    public delegate void EventHandler(object param1, object param2);
+
+    public event EventHandler eventHandle;
+    public void Handle(object arg1, object arg2)
+    {
+        if (eventHandle != null)
+            eventHandle(arg1, arg2);
+    }
+    public void removeListener(EventHandler removeHandle)
+    {
+        if (eventHandle != null)
+            eventHandle -= removeHandle;
+    }
+
+    public void addListener(EventHandler addHandle)
+    {
+        eventHandle += addHandle;
+    }
+}
+public class DelegateThreeParamEvent
+{
+    public delegate void EventHandler(object param1, object param2, object param3);
+
+    public event EventHandler eventHandle;
+    public void Handle(object arg1, object arg2, object arg3)
+    {
+        if (eventHandle != null)
+            eventHandle(arg1, arg2, arg3);
+    }
+    public void removeListener(EventHandler removeHandle)
+    {
+        if (eventHandle != null)
+            eventHandle -= removeHandle;
+    }
+
+    public void addListener(EventHandler addHandle)
+    {
+        eventHandle += addHandle;
+    }
+}
+
 public class EventManager : Singleton<EventManager>, IManager
 {
-    private Dictionary<string, Action> actionMap;
+    private Dictionary<string, DelegateEvent> actionMap;
 
-    private Dictionary<string, Action<object>> oneParamMap;
+    private Dictionary<string, DelegateOneParamEvent> oneParamMap;
 
-    private Dictionary<string, Action<object, object>> twoParamsMap;
+    private Dictionary<string, DelegateTwoParamEvent> twoParamsMap;
 
-    private Dictionary<string, Action<object, object, object>> threeParamsMap;
+    private Dictionary<string, DelegateThreeParamEvent> threeParamsMap;
 
     public void Init()
     {
-        actionMap = new Dictionary<string, Action>();
-        oneParamMap = new Dictionary<string, Action<object>>();
-        twoParamsMap = new Dictionary<string, Action<object, object>>();
+        actionMap = new Dictionary<string, DelegateEvent>();
+        oneParamMap = new Dictionary<string, DelegateOneParamEvent>();
+        twoParamsMap = new Dictionary<string, DelegateTwoParamEvent>();
         threeParamsMap =
-            new Dictionary<string, Action<object, object, object>>();
+            new Dictionary<string, DelegateThreeParamEvent>();
     }
 
     public void Release()
     {
     }
 
-    public void On(string eventName, Action callback)
+    public void On(string eventName, DelegateEvent.EventHandler callback)
     {
         if (!actionMap.ContainsKey(eventName))
         {
-            actionMap.Add(eventName, callback);
+            DelegateEvent delegateEvent = new DelegateEvent();
+            actionMap.Add(eventName, delegateEvent);
         }
-        else
-        {
-            actionMap[eventName] += callback;
-        }
+
+        actionMap[eventName].addListener(callback);
     }
 
-    public void Off(string eventName, Action callback)
+    public void Off(string eventName, DelegateEvent.EventHandler callback)
     {
-        Action action;
-        if (actionMap.TryGetValue(eventName, out action))
+        if (actionMap.ContainsKey(eventName))
         {
-            action -= callback;
+            actionMap[eventName].removeListener(callback);
         }
     }
 
-    public void On(string eventName, Action<object> callback)
+    public void On(string eventName, DelegateOneParamEvent.EventHandler callback)
     {
         if (!oneParamMap.ContainsKey(eventName))
         {
-            oneParamMap.Add(eventName, callback);
+            DelegateOneParamEvent delegateEvent = new DelegateOneParamEvent();
+            oneParamMap.Add(eventName, delegateEvent);
         }
-        else
-        {
-            oneParamMap[eventName] += callback;
-        }
+
+        oneParamMap[eventName].addListener(callback);
     }
 
-    public void Off(string eventName, Action<object> callback)
+    public void Off(string eventName, DelegateOneParamEvent.EventHandler callback)
     {
-        Action<object> action;
-        if (oneParamMap.TryGetValue(eventName, out action))
+        if (oneParamMap.ContainsKey(eventName))
         {
-            action -= callback;
+            oneParamMap[eventName].removeListener(callback);
         }
     }
 
-    public void On(string eventName, Action<object, object> callback)
+    public void On(string eventName, DelegateTwoParamEvent.EventHandler callback)
     {
         if (!twoParamsMap.ContainsKey(eventName))
         {
-            twoParamsMap.Add(eventName, callback);
+            DelegateTwoParamEvent delegateEvent = new DelegateTwoParamEvent();
+            twoParamsMap.Add(eventName, delegateEvent);
         }
-        else
-        {
-            twoParamsMap[eventName] += callback;
-        }
+
+        twoParamsMap[eventName].addListener(callback);
     }
 
-    public void Off(string eventName, Action<object, object> callback)
+    public void Off(string eventName, DelegateTwoParamEvent.EventHandler callback)
     {
-        Action<object, object> action;
-        if (twoParamsMap.TryGetValue(eventName, out action))
+        if (twoParamsMap.ContainsKey(eventName))
         {
-            action -= callback;
+            twoParamsMap[eventName].removeListener(callback);
         }
     }
 
-    public void On(string eventName, Action<object, object, object> callback)
+    public void On(string eventName, DelegateThreeParamEvent.EventHandler callback)
     {
         if (!threeParamsMap.ContainsKey(eventName))
         {
-            threeParamsMap.Add(eventName, callback);
+            DelegateThreeParamEvent delegateEvent = new DelegateThreeParamEvent();
+            threeParamsMap.Add(eventName, delegateEvent);
         }
-        else
-        {
-            threeParamsMap[eventName] += callback;
-        }
+
+        threeParamsMap[eventName].addListener(callback);
     }
 
-    public void Off(string eventName, Action<object, object, object> callback)
+    public void Off(string eventName, DelegateThreeParamEvent.EventHandler callback)
     {
-        Action<object, object, object> action;
-        if (threeParamsMap.TryGetValue(eventName, out action))
+        if (threeParamsMap.ContainsKey(eventName))
         {
-            action -= callback;
+            threeParamsMap[eventName].removeListener(callback);
         }
     }
 
@@ -137,37 +214,33 @@ public class EventManager : Singleton<EventManager>, IManager
         {
             case 0:
                 {
-                    Action action;
-                    if (actionMap.TryGetValue(eventName, out action))
+                    if (actionMap.ContainsKey(eventName))
                     {
-                        action.Invoke();
+                        actionMap[eventName].Handle();
                     }
                     break;
                 }
             case 1:
                 {
-                    Action<object> action;
-                    if (oneParamMap.TryGetValue(eventName, out action))
+                    if (oneParamMap.ContainsKey(eventName))
                     {
-                        action.Invoke(args[0]);
+                        oneParamMap[eventName].Handle(args[0]);
                     }
                     break;
                 }
             case 2:
                 {
-                    Action<object, object> action;
-                    if (twoParamsMap.TryGetValue(eventName, out action))
+                    if (twoParamsMap.ContainsKey(eventName))
                     {
-                        action.Invoke(args[0], args[1]);
+                        twoParamsMap[eventName].Handle(args[0], args[1]);
                     }
                     break;
                 }
             case 3:
                 {
-                    Action<object, object, object> action;
-                    if (threeParamsMap.TryGetValue(eventName, out action))
+                    if (threeParamsMap.ContainsKey(eventName))
                     {
-                        action.Invoke(args[0], args[1], args[2]);
+                        threeParamsMap[eventName].Handle(args[0], args[1], args[2]);
                     }
                     break;
                 }

@@ -13,7 +13,6 @@ public class UnitAvatar : MonoBehaviour
     private float _moveSpeed;
     private int _camp;
     private BattleUnitVO _vo;
-    private Action<object> _OnSelectedAction;
 
     private UnitTitle _title;
 
@@ -98,7 +97,7 @@ public class UnitAvatar : MonoBehaviour
   
     private void OnDestroy()
     {
-        EventManager.Instance.Off(EventConst.ON_SELECT_OP_UNIT, _OnSelectedAction);
+        EventManager.Instance.Off(EventConst.ON_SELECT_OP_UNIT, OnSelected);
         if (_title != null)
         {
             GameObject.Destroy(_title.gameObject);
@@ -121,8 +120,7 @@ public class UnitAvatar : MonoBehaviour
         _title = titleObj.AddComponent<UnitTitle>();
         _title.BindUnit(this);
 
-        _OnSelectedAction = new Action<object>(OnSelected);
-        EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, _OnSelectedAction);
+        EventManager.Instance.On(EventConst.ON_SELECT_OP_UNIT, OnSelected);
     }
 
     public void SetSelected(bool bSelect)

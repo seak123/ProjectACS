@@ -76,6 +76,7 @@ public class BattlePerformer
                 for (int i = _playNodes.Count - 1; i >= 0; --i)
                 {
                     _playNodes[i].Play(deltaTime);
+                    
                     if (_playNodes[i].IsFinished())
                     {
                         var nextNodes = _playNodes[i].GetFollowers();

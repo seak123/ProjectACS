@@ -50,6 +50,10 @@ public class AnimNode : BaseNode, IPerformNode
                 {
                     _unit.TurnToDirection(_unit.Direction, () => { bCompleted = true; });
                 }
+                else
+                {
+                    bCompleted = true;
+                }
                 break;
             default:
                 break;
